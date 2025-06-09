@@ -1,11 +1,282 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, Database, Search, FileText, BarChart3 } from 'lucide-react';
+import RiskScoreCard from '@/components/dashboard/RiskScoreCard';
+import AttackSurfacePanel from '@/components/dashboard/AttackSurfacePanel';
+import PentestResults from '@/components/dashboard/PentestResults';
+import SecurityTrends from '@/components/dashboard/SecurityTrends';
+import VulnerabilityTable from '@/components/dashboard/VulnerabilityTable';
 
 const Index = () => {
+  const [currentRiskScore, setCurrentRiskScore] = useState(72);
+  const [timeframe, setTimeframe] = useState('30d');
+
+  // Mock data for demonstration
+  const riskTrendData = [
+    { date: '2024-01-01', score: 85, critical: 12, high: 23, medium: 45 },
+    { date: '2024-02-01', score: 82, critical: 10, high: 20, medium: 42 },
+    { date: '2024-03-01', score: 78, critical: 8, high: 18, medium: 38 },
+    { date: '2024-04-01', score: 75, critical: 6, high: 15, medium: 35 },
+    { date: '2024-05-01', score: 72, critical: 4, high: 12, medium: 32 },
+  ];
+
+  const attackSurfaceData = [
+    { name: 'Web Applications', exposed: 45, secured: 55, risk: 'high' },
+    { name: 'Network Services', exposed: 30, secured: 70, risk: 'medium' },
+    { name: 'Cloud Infrastructure', exposed: 25, secured: 75, risk: 'medium' },
+    { name: 'Mobile Apps', exposed: 15, secured: 85, risk: 'low' },
+    { name: 'IoT Devices', exposed: 60, secured: 40, risk: 'critical' },
+  ];
+
+  const vulnerabilityDistribution = [
+    { name: 'Critical', value: 4, color: '#ef4444' },
+    { name: 'High', value: 12, color: '#f97316' },
+    { name: 'Medium', value: 32, color: '#eab308' },
+    { name: 'Low', value: 28, color: '#22c55e' },
+  ];
+
+  const securityPostureData = [
+    { subject: 'Patch Management', A: 85, fullMark: 100 },
+    { subject: 'Access Control', A: 75, fullMark: 100 },
+    { subject: 'Network Security', A: 90, fullMark: 100 },
+    { subject: 'Data Protection', A: 80, fullMark: 100 },
+    { subject: 'Incident Response', A: 70, fullMark: 100 },
+    { subject: 'Security Awareness', A: 65, fullMark: 100 },
+  ];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      {/* Header */}
+      <div className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-lg">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Shield className="h-8 w-8 text-blue-400" />
+              <div>
+                <h1 className="text-2xl font-bold text-white">CyberGuard Dashboard</h1>
+                <p className="text-slate-400 text-sm">Risk Management & Security Posture Assessment</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Badge variant="outline" className="text-blue-400 border-blue-400">
+                Last Updated: {new Date().toLocaleDateString()}
+              </Badge>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
+              >
+                <Database className="h-4 w-4 mr-2" />
+                Sync Data
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Dashboard */}
+      <div className="container mx-auto px-6 py-8">
+        {/* Risk Score Overview */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+          <RiskScoreCard score={currentRiskScore} />
+          
+          <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg text-white">Active Vulnerabilities</CardTitle>
+                <AlertTriangle className="h-5 w-5 text-orange-400" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-white mb-2">76</div>
+              <div className="flex items-center text-sm">
+                <TrendingDown className="h-4 w-4 text-green-400 mr-1" />
+                <span className="text-green-400">-12% from last month</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg text-white">Attack Surface</CardTitle>
+                <Search className="h-5 w-5 text-blue-400" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-white mb-2">245</div>
+              <div className="text-sm text-slate-400">Assets monitored</div>
+              <Progress value={68} className="mt-2 bg-slate-700" />
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg text-white">Pentest Score</CardTitle>
+                <FileText className="h-5 w-5 text-purple-400" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-white mb-2">B+</div>
+              <div className="flex items-center text-sm">
+                <TrendingUp className="h-4 w-4 text-green-400 mr-1" />
+                <span className="text-green-400">Improved from B</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="bg-slate-800 border-slate-700 p-1">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="attack-surface" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Attack Surface
+            </TabsTrigger>
+            <TabsTrigger value="pentest" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Pentest Results
+            </TabsTrigger>
+            <TabsTrigger value="vulnerabilities" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Vulnerabilities
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Risk Trend Chart */}
+              <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
+                <CardHeader>
+                  <CardTitle className="text-white">Risk Score Trend</CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Risk score evolution over the last 5 months
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={riskTrendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" stroke="#9CA3AF" fontSize={12} />
+                      <YAxis stroke="#9CA3AF" fontSize={12} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#1F2937', 
+                          border: '1px solid #374151',
+                          borderRadius: '8px',
+                          color: '#fff'
+                        }} 
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="score" 
+                        stroke="#3B82F6" 
+                        strokeWidth={3}
+                        dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Vulnerability Distribution */}
+              <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
+                <CardHeader>
+                  <CardTitle className="text-white">Vulnerability Distribution</CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Current vulnerability breakdown by severity
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={vulnerabilityDistribution}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, value }) => `${name}: ${value}`}
+                        labelLine={false}
+                      >
+                        {vulnerabilityDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#1F2937', 
+                          border: '1px solid #374151',
+                          borderRadius: '8px',
+                          color: '#fff'
+                        }} 
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Security Posture Radar */}
+            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
+              <CardHeader>
+                <CardTitle className="text-white">Security Posture Assessment</CardTitle>
+                <CardDescription className="text-slate-400">
+                  Comprehensive evaluation across key security domains
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <RadarChart data={securityPostureData}>
+                    <PolarGrid stroke="#374151" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+                    <PolarRadiusAxis 
+                      angle={90} 
+                      domain={[0, 100]} 
+                      tick={{ fill: '#9CA3AF', fontSize: 10 }}
+                    />
+                    <Radar
+                      name="Security Score"
+                      dataKey="A"
+                      stroke="#3B82F6"
+                      fill="#3B82F6"
+                      fillOpacity={0.3}
+                      strokeWidth={2}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1F2937', 
+                        border: '1px solid #374151',
+                        borderRadius: '8px',
+                        color: '#fff'
+                      }} 
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="attack-surface">
+            <AttackSurfacePanel data={attackSurfaceData} />
+          </TabsContent>
+
+          <TabsContent value="pentest">
+            <PentestResults />
+          </TabsContent>
+
+          <TabsContent value="vulnerabilities">
+            <VulnerabilityTable />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
