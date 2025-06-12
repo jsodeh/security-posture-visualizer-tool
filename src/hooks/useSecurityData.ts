@@ -1,10 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SecurityDataService } from '@/services/SecurityDataService';
 import { RiskCalculationService } from '@/services/RiskCalculationService';
 
-// For demo purposes, using a fixed organization ID
-const DEMO_ORG_ID = 'demo-org-123';
+// Updated to use the proper UUID format for the demo organization
+const DEMO_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
 
 export const useSecurityData = () => {
   const queryClient = useQueryClient();
