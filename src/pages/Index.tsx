@@ -41,8 +41,29 @@ const Index = () => {
   const totalAssets = assets.length || 245;
   const monitoredAssets = Math.round(totalAssets * 0.68);
   
-  // Calculate pentest score from latest findings
-  const latestPentestScore = pentestFindings.length > 0 ? 'B+' : 'B+';
+  // Calculate pentest grade from latest findings
+  const latestPentestGrade = React.useMemo(() => {
+    if (pentestFindings.length === 0) return 'B+';
+    
+    // Group findings by most recent test
+    const recentFindings = pentestFindings.sort((a, b) => 
+      new Date(b.test_date).getTime() - new Date(a.test_date).getTime()
+    );
+    
+    if (recentFindings.length === 0) return 'B+';
+    
+    // Get findings from the most recent test date
+    const latestTestDate = recentFindings[0].test_date;
+    const latestTestFindings = recentFindings.filter(f => f.test_date === latestTestDate);
+    
+    const critical = latestTestFindings.filter(f => f.severity === 'Critical').length;
+    const high = latestTestFindings.filter(f => f.severity === 'High').length;
+    const medium = latestTestFindings.filter(f => f.severity === 'Medium').length;
+    const low = latestTestFindings.filter(f => f.severity === 'Low').length;
+    
+    return calculatePentestGrade(critical, high, medium, low);
+  }, [pentestFindings]);
+  
   const pentestImprovement = true; // Mock improvement for demo
 
   // Handle sync data
@@ -220,12 +241,12 @@ const Index = () => {
           <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg text-white">Pentest Score</CardTitle>
+                <CardTitle className="text-lg text-white">Pentest Grade</CardTitle>
                 <FileText className="h-5 w-5 text-purple-400" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-white mb-2">{latestPentestScore}</div>
+              <div className="text-3xl font-bold text-white mb-2">{latestPentestGrade}</div>
               <div className="flex items-center text-sm">
                 <TrendingUp className="h-4 w-4 text-green-400 mr-1" />
                 <span className="text-green-400">Improved from B</span>
@@ -389,5 +410,29 @@ const Index = () => {
     </div>
   );
 };
+
+// Helper function for calculating pentest grade
+function calculatePentestGrade(critical: number, high: number, medium: number, low: number): string {
+  const totalFindings = critical + high + medium + low;
+  if (totalFindings === 0) return 'A+';
+  
+  const weightedScore = (critical * 10) + (high * 5) + (medium * 2) + (low * 1);
+  const maxPossibleScore = totalFindings * 10;
+  const percentage = ((maxPossibleScore - weightedScore) / maxPossibleScore) * 100;
+  
+  if (percentage >= 95) return 'A+';
+  if (percentage >= 90) return 'A';
+  if (percentage >= 87) return 'A-';
+  if (percentage >= 83) return 'B+';
+  if (percentage >= 80) return 'B';
+  if (percentage >= 77) return 'B-';
+  if (percentage >= 73) return 'C+';
+  if (percentage >= 70) return 'C';
+  if (percentage >= 67) return 'C-';
+  if (percentage >= 63) return 'D+';
+  if (percentage >= 60) return 'D';
+  if (percentage >= 57) return 'D-';
+  return 'F';
+}
 
 export default Index;
