@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Upload, FileText, CheckCircle, AlertCircle, X } from 'lucide-react';
-import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 import { DataIngestionService } from '@/services/DataIngestionService';
 
@@ -30,25 +29,42 @@ const FileUploadModal: React.FC<FileUploadModalProps> = ({
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles = acceptedFiles.map(file => ({
+  // Simple drag and drop implementation without react-dropzone
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    addFiles(droppedFiles);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+      addFiles(selectedFiles);
+    }
+  };
+
+  const addFiles = (newFiles: File[]) => {
+    const validFiles = newFiles.filter(file => 
+      file.name.endsWith('.xml') || file.name.endsWith('.nessus')
+    );
+
+    const uploadFiles = validFiles.map(file => ({
       file,
       id: Math.random().toString(36).substr(2, 9),
       status: 'pending' as const,
       progress: 0,
     }));
-    setFiles(prev => [...prev, ...newFiles]);
-  }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'text/xml': ['.xml'],
-      'application/xml': ['.xml'],
-      'text/plain': ['.nessus'],
-    },
-    multiple: true,
-  });
+    setFiles(prev => [...prev, ...uploadFiles]);
+
+    if (validFiles.length !== newFiles.length) {
+      toast.error('Some files were skipped. Only .xml and .nessus files are supported.');
+    }
+  };
 
   const removeFile = (id: string) => {
     setFiles(prev => prev.filter(f => f.id !== id));
@@ -145,18 +161,25 @@ const FileUploadModal: React.FC<FileUploadModalProps> = ({
           <Card className="border-dashed border-2 border-slate-600 bg-slate-700/30">
             <CardContent className="p-6">
               <div
-                {...getRootProps()}
-                className={`text-center cursor-pointer transition-colors ${
-                  isDragActive ? 'text-blue-400' : 'text-slate-400'
-                }`}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                className="text-center cursor-pointer transition-colors text-slate-400 hover:text-blue-400"
+                onClick={() => document.getElementById('file-input')?.click()}
               >
-                <input {...getInputProps()} />
+                <input
+                  id="file-input"
+                  type="file"
+                  multiple
+                  accept=".xml,.nessus"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
                 <Upload className="h-12 w-12 mx-auto mb-4" />
                 <p className="text-lg font-medium mb-2">
-                  {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
+                  Drag & drop files here or click to select
                 </p>
                 <p className="text-sm">
-                  or click to select files (.xml, .nessus files supported)
+                  Supports .xml and .nessus files
                 </p>
               </div>
             </CardContent>
