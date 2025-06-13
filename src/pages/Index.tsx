@@ -5,23 +5,30 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, Database, Search, FileText, BarChart3 } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, Database, Search, FileText, BarChart3, Upload, User, LogOut, Building } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import RiskScoreCard from '@/components/dashboard/RiskScoreCard';
 import AttackSurfacePanel from '@/components/dashboard/AttackSurfacePanel';
 import PentestResults from '@/components/dashboard/PentestResults';
 import SecurityTrends from '@/components/dashboard/SecurityTrends';
 import VulnerabilityTable from '@/components/dashboard/VulnerabilityTable';
+import FileUploadModal from '@/components/upload/FileUploadModal';
 import { useSecurityData } from '@/hooks/useSecurityData';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const [timeframe, setTimeframe] = useState('30d');
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const { useVulnerabilities, useAssets, usePentestFindings, useRiskScores } = useSecurityData();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   
   // Fetch real data
-  const { data: vulnerabilities = [] } = useVulnerabilities();
-  const { data: assets = [] } = useAssets();
-  const { data: pentestFindings = [] } = usePentestFindings();
-  const { data: riskScores = [] } = useRiskScores();
+  const { data: vulnerabilities = [], refetch: refetchVulns } = useVulnerabilities();
+  const { data: assets = [], refetch: refetchAssets } = useAssets();
+  const { data: pentestFindings = [], refetch: refetchPentest } = usePentestFindings();
+  const { data: riskScores = [], refetch: refetchRisk } = useRiskScores();
 
   // Calculate real-time metrics from actual data
   const currentRiskScore = riskScores.length > 0 ? riskScores[0].overall_score : 72;
@@ -37,6 +44,24 @@ const Index = () => {
   // Calculate pentest score from latest findings
   const latestPentestScore = pentestFindings.length > 0 ? 'B+' : 'B+';
   const pentestImprovement = true; // Mock improvement for demo
+
+  // Handle sync data
+  const handleSyncData = async () => {
+    await Promise.all([
+      refetchVulns(),
+      refetchAssets(),
+      refetchPentest(),
+      refetchRisk()
+    ]);
+  };
+
+  const handleUploadComplete = () => {
+    handleSyncData();
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   // Mock data for demonstration (fallback when no real data)
   const riskTrendData = riskScores.length > 0 
@@ -110,11 +135,47 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 size="sm"
+                onClick={() => setUploadModalOpen(true)}
+                className="text-green-400 border-green-400 hover:bg-green-400 hover:text-white"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Scans
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleSyncData}
                 className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
               >
                 <Database className="h-4 w-4 mr-2" />
                 Sync Data
               </Button>
+              
+              {/* User Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-white border-slate-600">
+                    <User className="h-4 w-4 mr-2" />
+                    {user?.email?.split('@')[0]}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-slate-800 border-slate-700">
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/organization')}
+                    className="text-white hover:bg-slate-700"
+                  >
+                    <Building className="h-4 w-4 mr-2" />
+                    Organization
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={handleSignOut}
+                    className="text-white hover:bg-slate-700"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -318,6 +379,13 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* File Upload Modal */}
+      <FileUploadModal
+        open={uploadModalOpen}
+        onOpenChange={setUploadModalOpen}
+        onUploadComplete={handleUploadComplete}
+      />
     </div>
   );
 };
