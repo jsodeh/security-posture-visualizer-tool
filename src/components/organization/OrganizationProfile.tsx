@@ -75,7 +75,7 @@ const OrganizationProfile = () => {
               variant="outline"
               size="sm"
               onClick={() => navigate('/')}
-              className="text-slate-200 border-slate-600 hover:bg-slate-700 hover:text-white"
+              className="bg-slate-800 text-white border-slate-600 hover:bg-slate-700 hover:text-white hover:border-slate-500"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
@@ -114,7 +114,7 @@ const OrganizationProfile = () => {
                     size="sm"
                     onClick={() => setIsEditing(!isEditing)}
                     disabled={isSaving}
-                    className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
+                    className="bg-slate-700 text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
                   >
                     <Settings className="h-4 w-4 mr-2" />
                     {isEditing ? 'Cancel' : 'Edit'}
@@ -266,7 +266,7 @@ const OrganizationProfile = () => {
                       variant="outline"
                       onClick={() => setIsEditing(false)}
                       disabled={isSaving}
-                      className="text-slate-300 border-slate-600 hover:bg-slate-700"
+                      className="bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600"
                     >
                       Cancel
                     </Button>
@@ -344,7 +344,7 @@ const OrganizationProfile = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Button 
                   variant="outline" 
-                  className="text-blue-400 border-blue-400 h-20 flex-col hover:bg-blue-400 hover:text-white transition-all duration-200"
+                  className="bg-slate-700 text-blue-400 border-blue-400 h-20 flex-col hover:bg-blue-400 hover:text-white transition-all duration-200"
                   onClick={() => handleDownloadReport('Executive Summary')}
                 >
                   <Download className="h-6 w-6 mb-2" />
@@ -352,7 +352,7 @@ const OrganizationProfile = () => {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="text-blue-400 border-blue-400 h-20 flex-col hover:bg-blue-400 hover:text-white transition-all duration-200"
+                  className="bg-slate-700 text-blue-400 border-blue-400 h-20 flex-col hover:bg-blue-400 hover:text-white transition-all duration-200"
                   onClick={() => handleDownloadReport('Technical Report')}
                 >
                   <Download className="h-6 w-6 mb-2" />
@@ -360,7 +360,7 @@ const OrganizationProfile = () => {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="text-blue-400 border-blue-400 h-20 flex-col hover:bg-blue-400 hover:text-white transition-all duration-200"
+                  className="bg-slate-700 text-blue-400 border-blue-400 h-20 flex-col hover:bg-blue-400 hover:text-white transition-all duration-200"
                   onClick={() => handleDownloadReport('Compliance Report')}
                 >
                   <Download className="h-6 w-6 mb-2" />

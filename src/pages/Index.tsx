@@ -198,10 +198,10 @@ const Index = () => {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="text-slate-100 border-slate-500 bg-slate-700/90 hover:bg-slate-600 hover:text-white hover:border-slate-400 shadow-lg backdrop-blur-sm"
+                    className="bg-slate-800 text-white border-slate-600 hover:bg-slate-700 hover:text-white hover:border-slate-500 shadow-lg backdrop-blur-sm font-medium"
                   >
-                    <User className="h-4 w-4 mr-2 text-slate-100" />
-                    <span className="text-slate-100 font-medium">
+                    <User className="h-4 w-4 mr-2 text-white" />
+                    <span className="text-white font-medium">
                       {user?.email?.split('@')[0] || 'User'}
                     </span>
                   </Button>
