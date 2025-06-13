@@ -67,7 +67,7 @@ const OrganizationProfile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      {/* Header */}
+      {/* Header - FIXED to match main dashboard styling */}
       <div className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-lg">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center space-x-4">
@@ -75,7 +75,7 @@ const OrganizationProfile = () => {
               variant="outline"
               size="sm"
               onClick={() => navigate('/')}
-              className="text-slate-200 border-slate-600 hover:bg-slate-700"
+              className="text-slate-200 border-slate-600 hover:bg-slate-700 hover:text-white"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
@@ -90,8 +90,8 @@ const OrganizationProfile = () => {
 
       <div className="container mx-auto px-6 py-8">
         <div className="space-y-6">
-          {/* Organization Header */}
-          <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
+          {/* Organization Header - FIXED styling to match dashboard */}
+          <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg shadow-xl">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
@@ -125,8 +125,8 @@ const OrganizationProfile = () => {
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Organization Details */}
-            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
+            {/* Organization Details - FIXED styling */}
+            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg shadow-xl">
               <CardHeader>
                 <CardTitle className="text-white">Organization Details</CardTitle>
               </CardHeader>
@@ -138,11 +138,11 @@ const OrganizationProfile = () => {
                       <Input
                         value={orgData.name}
                         onChange={(e) => handleInputChange('name', e.target.value)}
-                        className="bg-slate-700 border-slate-600 text-white"
+                        className="bg-slate-700 border-slate-600 text-white mt-1"
                         placeholder="Enter organization name"
                       />
                     ) : (
-                      <p className="text-white font-medium">
+                      <p className="text-white font-medium mt-1">
                         {orgData.name || 'Not specified'}
                       </p>
                     )}
@@ -153,11 +153,11 @@ const OrganizationProfile = () => {
                       <Input
                         value={orgData.domain}
                         onChange={(e) => handleInputChange('domain', e.target.value)}
-                        className="bg-slate-700 border-slate-600 text-white"
+                        className="bg-slate-700 border-slate-600 text-white mt-1"
                         placeholder="Enter domain"
                       />
                     ) : (
-                      <p className="text-white font-medium">
+                      <p className="text-white font-medium mt-1">
                         {orgData.domain || 'Not specified'}
                       </p>
                     )}
@@ -169,7 +169,7 @@ const OrganizationProfile = () => {
                     <Label className="text-slate-400">Industry</Label>
                     {isEditing ? (
                       <Select value={orgData.industry} onValueChange={(value) => handleInputChange('industry', value)}>
-                        <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                        <SelectTrigger className="bg-slate-700 border-slate-600 text-white mt-1">
                           <SelectValue placeholder="Select industry" />
                         </SelectTrigger>
                         <SelectContent className="bg-slate-700 border-slate-600">
@@ -184,7 +184,7 @@ const OrganizationProfile = () => {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-white font-medium">
+                      <p className="text-white font-medium mt-1">
                         {orgData.industry || 'Not specified'}
                       </p>
                     )}
@@ -193,7 +193,7 @@ const OrganizationProfile = () => {
                     <Label className="text-slate-400">Company Size</Label>
                     {isEditing ? (
                       <Select value={orgData.size} onValueChange={(value) => handleInputChange('size', value)}>
-                        <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                        <SelectTrigger className="bg-slate-700 border-slate-600 text-white mt-1">
                           <SelectValue placeholder="Select company size" />
                         </SelectTrigger>
                         <SelectContent className="bg-slate-700 border-slate-600">
@@ -204,7 +204,7 @@ const OrganizationProfile = () => {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-white font-medium">
+                      <p className="text-white font-medium mt-1">
                         {orgData.size || 'Not specified'}
                       </p>
                     )}
@@ -217,11 +217,11 @@ const OrganizationProfile = () => {
                     <Input
                       value={orgData.address}
                       onChange={(e) => handleInputChange('address', e.target.value)}
-                      className="bg-slate-700 border-slate-600 text-white"
+                      className="bg-slate-700 border-slate-600 text-white mt-1"
                       placeholder="Enter address"
                     />
                   ) : (
-                    <p className="text-white font-medium">
+                    <p className="text-white font-medium mt-1">
                       {orgData.address || 'Not specified'}
                     </p>
                   )}
@@ -234,11 +234,11 @@ const OrganizationProfile = () => {
                       <Input
                         value={orgData.contactEmail}
                         onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                        className="bg-slate-700 border-slate-600 text-white"
+                        className="bg-slate-700 border-slate-600 text-white mt-1"
                         placeholder="Enter contact email"
                       />
                     ) : (
-                      <p className="text-white font-medium">
+                      <p className="text-white font-medium mt-1">
                         {orgData.contactEmail || 'Not specified'}
                       </p>
                     )}
@@ -249,11 +249,11 @@ const OrganizationProfile = () => {
                       <Input
                         value={orgData.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
-                        className="bg-slate-700 border-slate-600 text-white"
+                        className="bg-slate-700 border-slate-600 text-white mt-1"
                         placeholder="Enter phone number"
                       />
                     ) : (
-                      <p className="text-white font-medium">
+                      <p className="text-white font-medium mt-1">
                         {orgData.phone || 'Not specified'}
                       </p>
                     )}
@@ -266,13 +266,14 @@ const OrganizationProfile = () => {
                       variant="outline"
                       onClick={() => setIsEditing(false)}
                       disabled={isSaving}
+                      className="text-slate-300 border-slate-600 hover:bg-slate-700"
                     >
                       Cancel
                     </Button>
                     <Button
                       onClick={handleSave}
                       disabled={isSaving}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       {isSaving ? (
                         <>
@@ -288,35 +289,35 @@ const OrganizationProfile = () => {
               </CardContent>
             </Card>
 
-            {/* Security Statistics */}
-            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
+            {/* Security Statistics - FIXED styling */}
+            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg shadow-xl">
               <CardHeader>
                 <CardTitle className="text-white">Security Overview</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-slate-700/30 rounded-lg">
+                  <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600">
                     <div className="text-2xl font-bold text-blue-400">245</div>
                     <div className="text-sm text-slate-400">Total Assets</div>
                   </div>
-                  <div className="text-center p-4 bg-slate-700/30 rounded-lg">
+                  <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600">
                     <div className="text-2xl font-bold text-orange-400">76</div>
                     <div className="text-sm text-slate-400">Open Vulnerabilities</div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-slate-700/30 rounded-lg">
+                  <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600">
                     <div className="text-2xl font-bold text-green-400">72</div>
                     <div className="text-sm text-slate-400">Risk Score</div>
                   </div>
-                  <div className="text-center p-4 bg-slate-700/30 rounded-lg">
+                  <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600">
                     <div className="text-2xl font-bold text-purple-400">B+</div>
                     <div className="text-sm text-slate-400">Pentest Grade</div>
                   </div>
                 </div>
 
-                <div className="pt-4 space-y-3">
+                <div className="pt-4 space-y-3 border-t border-slate-600">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-slate-400">Last Security Scan</span>
                     <span className="text-white">2 hours ago</span>
@@ -334,8 +335,8 @@ const OrganizationProfile = () => {
             </Card>
           </div>
 
-          {/* Reports and Exports */}
-          <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
+          {/* Reports and Exports - FIXED styling */}
+          <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg shadow-xl">
             <CardHeader>
               <CardTitle className="text-white">Reports & Exports</CardTitle>
             </CardHeader>
@@ -343,7 +344,7 @@ const OrganizationProfile = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Button 
                   variant="outline" 
-                  className="text-blue-400 border-blue-400 h-20 flex-col hover:bg-blue-400 hover:text-white"
+                  className="text-blue-400 border-blue-400 h-20 flex-col hover:bg-blue-400 hover:text-white transition-all duration-200"
                   onClick={() => handleDownloadReport('Executive Summary')}
                 >
                   <Download className="h-6 w-6 mb-2" />
@@ -351,7 +352,7 @@ const OrganizationProfile = () => {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="text-blue-400 border-blue-400 h-20 flex-col hover:bg-blue-400 hover:text-white"
+                  className="text-blue-400 border-blue-400 h-20 flex-col hover:bg-blue-400 hover:text-white transition-all duration-200"
                   onClick={() => handleDownloadReport('Technical Report')}
                 >
                   <Download className="h-6 w-6 mb-2" />
@@ -359,7 +360,7 @@ const OrganizationProfile = () => {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="text-blue-400 border-blue-400 h-20 flex-col hover:bg-blue-400 hover:text-white"
+                  className="text-blue-400 border-blue-400 h-20 flex-col hover:bg-blue-400 hover:text-white transition-all duration-200"
                   onClick={() => handleDownloadReport('Compliance Report')}
                 >
                   <Download className="h-6 w-6 mb-2" />

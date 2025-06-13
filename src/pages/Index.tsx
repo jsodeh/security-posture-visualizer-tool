@@ -192,29 +192,31 @@ const Index = () => {
                 {isLoading ? 'Syncing...' : 'Sync Data'}
               </Button>
               
-              {/* User Menu - Fixed visibility with better contrast */}
+              {/* User Menu - FIXED with proper contrast and visibility */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="text-white border-slate-600 bg-slate-800/80 hover:bg-slate-700 hover:text-white shadow-lg"
+                    className="text-slate-100 border-slate-500 bg-slate-700/90 hover:bg-slate-600 hover:text-white hover:border-slate-400 shadow-lg backdrop-blur-sm"
                   >
-                    <User className="h-4 w-4 mr-2" />
-                    {user?.email?.split('@')[0]}
+                    <User className="h-4 w-4 mr-2 text-slate-100" />
+                    <span className="text-slate-100 font-medium">
+                      {user?.email?.split('@')[0] || 'User'}
+                    </span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-slate-800 border-slate-700">
+                <DropdownMenuContent className="bg-slate-800 border-slate-600 shadow-xl">
                   <DropdownMenuItem 
                     onClick={() => navigate('/organization')}
-                    className="text-white hover:bg-slate-700 cursor-pointer"
+                    className="text-white hover:bg-slate-700 cursor-pointer focus:bg-slate-700"
                   >
                     <Building className="h-4 w-4 mr-2" />
                     Organization
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={handleSignOut}
-                    className="text-white hover:bg-slate-700 cursor-pointer"
+                    className="text-white hover:bg-slate-700 cursor-pointer focus:bg-slate-700"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
