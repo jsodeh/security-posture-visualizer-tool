@@ -1,29 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Building, Users, Globe, Calendar, Download, Settings, ArrowLeft } from 'lucide-react';
+import { Building, Users, Globe, Calendar, Download, Settings, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const OrganizationProfile = () => {
-  const { user } = useAuth();
+  const { user, organizationName } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [orgData, setOrgData] = useState({
-    name: 'CyberGuard Demo Corp',
-    domain: 'cyberguard-demo.com',
-    industry: 'Technology',
-    size: 'Medium (100-500 employees)',
-    address: '123 Security Street, Cyber City, CC 12345',
-    contactEmail: user?.email || '',
-    phone: '+1 (555) 123-4567',
+    name: '',
+    domain: '',
+    industry: '',
+    size: '',
+    address: '',
+    contactEmail: '',
+    phone: '',
   });
+
+  // Initialize organization data when component mounts or user data changes
+  useEffect(() => {
+    if (user && organizationName) {
+      setOrgData({
+        name: organizationName,
+        domain: organizationName.toLowerCase().replace(/\s+/g, '-') + '.com',
+        industry: 'Technology',
+        size: 'Medium (100-500 employees)',
+        address: '123 Security Street, Cyber City, CC 12345',
+        contactEmail: user.email || '',
+        phone: '+1 (555) 123-4567',
+      });
+    }
+  }, [user, organizationName]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -84,8 +99,10 @@ const OrganizationProfile = () => {
                     <Building className="h-8 w-8 text-blue-400" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl text-white">{orgData.name}</CardTitle>
-                    <p className="text-slate-400">{orgData.domain}</p>
+                    <CardTitle className="text-2xl text-white">
+                      {orgData.name || 'Your Organization'}
+                    </CardTitle>
+                    <p className="text-slate-400">{orgData.domain || 'your-domain.com'}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -96,6 +113,7 @@ const OrganizationProfile = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setIsEditing(!isEditing)}
+                    disabled={isSaving}
                     className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
                   >
                     <Settings className="h-4 w-4 mr-2" />
@@ -121,9 +139,12 @@ const OrganizationProfile = () => {
                         value={orgData.name}
                         onChange={(e) => handleInputChange('name', e.target.value)}
                         className="bg-slate-700 border-slate-600 text-white"
+                        placeholder="Enter organization name"
                       />
                     ) : (
-                      <p className="text-white font-medium">{orgData.name}</p>
+                      <p className="text-white font-medium">
+                        {orgData.name || 'Not specified'}
+                      </p>
                     )}
                   </div>
                   <div>
@@ -133,9 +154,12 @@ const OrganizationProfile = () => {
                         value={orgData.domain}
                         onChange={(e) => handleInputChange('domain', e.target.value)}
                         className="bg-slate-700 border-slate-600 text-white"
+                        placeholder="Enter domain"
                       />
                     ) : (
-                      <p className="text-white font-medium">{orgData.domain}</p>
+                      <p className="text-white font-medium">
+                        {orgData.domain || 'Not specified'}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -146,7 +170,7 @@ const OrganizationProfile = () => {
                     {isEditing ? (
                       <Select value={orgData.industry} onValueChange={(value) => handleInputChange('industry', value)}>
                         <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                          <SelectValue />
+                          <SelectValue placeholder="Select industry" />
                         </SelectTrigger>
                         <SelectContent className="bg-slate-700 border-slate-600">
                           <SelectItem value="Technology">Technology</SelectItem>
@@ -154,11 +178,15 @@ const OrganizationProfile = () => {
                           <SelectItem value="Healthcare">Healthcare</SelectItem>
                           <SelectItem value="Manufacturing">Manufacturing</SelectItem>
                           <SelectItem value="Retail">Retail</SelectItem>
+                          <SelectItem value="Education">Education</SelectItem>
+                          <SelectItem value="Government">Government</SelectItem>
                           <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-white font-medium">{orgData.industry}</p>
+                      <p className="text-white font-medium">
+                        {orgData.industry || 'Not specified'}
+                      </p>
                     )}
                   </div>
                   <div>
@@ -166,7 +194,7 @@ const OrganizationProfile = () => {
                     {isEditing ? (
                       <Select value={orgData.size} onValueChange={(value) => handleInputChange('size', value)}>
                         <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                          <SelectValue />
+                          <SelectValue placeholder="Select company size" />
                         </SelectTrigger>
                         <SelectContent className="bg-slate-700 border-slate-600">
                           <SelectItem value="Small (1-50 employees)">Small (1-50 employees)</SelectItem>
@@ -176,7 +204,9 @@ const OrganizationProfile = () => {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-white font-medium">{orgData.size}</p>
+                      <p className="text-white font-medium">
+                        {orgData.size || 'Not specified'}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -188,9 +218,12 @@ const OrganizationProfile = () => {
                       value={orgData.address}
                       onChange={(e) => handleInputChange('address', e.target.value)}
                       className="bg-slate-700 border-slate-600 text-white"
+                      placeholder="Enter address"
                     />
                   ) : (
-                    <p className="text-white font-medium">{orgData.address}</p>
+                    <p className="text-white font-medium">
+                      {orgData.address || 'Not specified'}
+                    </p>
                   )}
                 </div>
 
@@ -202,9 +235,12 @@ const OrganizationProfile = () => {
                         value={orgData.contactEmail}
                         onChange={(e) => handleInputChange('contactEmail', e.target.value)}
                         className="bg-slate-700 border-slate-600 text-white"
+                        placeholder="Enter contact email"
                       />
                     ) : (
-                      <p className="text-white font-medium">{orgData.contactEmail}</p>
+                      <p className="text-white font-medium">
+                        {orgData.contactEmail || 'Not specified'}
+                      </p>
                     )}
                   </div>
                   <div>
@@ -214,9 +250,12 @@ const OrganizationProfile = () => {
                         value={orgData.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
                         className="bg-slate-700 border-slate-600 text-white"
+                        placeholder="Enter phone number"
                       />
                     ) : (
-                      <p className="text-white font-medium">{orgData.phone}</p>
+                      <p className="text-white font-medium">
+                        {orgData.phone || 'Not specified'}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -235,7 +274,14 @@ const OrganizationProfile = () => {
                       disabled={isSaving}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
-                      {isSaving ? 'Saving...' : 'Save Changes'}
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Changes'
+                      )}
                     </Button>
                   </div>
                 )}

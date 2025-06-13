@@ -192,10 +192,14 @@ const Index = () => {
                 {isLoading ? 'Syncing...' : 'Sync Data'}
               </Button>
               
-              {/* User Menu - Fixed visibility */}
+              {/* User Menu - Fixed visibility with better contrast */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="text-slate-200 border-slate-600 bg-slate-800 hover:bg-slate-700">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-white border-slate-600 bg-slate-800/80 hover:bg-slate-700 hover:text-white shadow-lg"
+                  >
                     <User className="h-4 w-4 mr-2" />
                     {user?.email?.split('@')[0]}
                   </Button>
