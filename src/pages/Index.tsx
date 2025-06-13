@@ -16,10 +16,12 @@ import FileUploadModal from '@/components/upload/FileUploadModal';
 import { useSecurityData } from '@/hooks/useSecurityData';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const Index = () => {
   const [timeframe, setTimeframe] = useState('30d');
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { useVulnerabilities, useAssets, usePentestFindings, useRiskScores } = useSecurityData();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -66,22 +68,39 @@ const Index = () => {
   
   const pentestImprovement = true; // Mock improvement for demo
 
-  // Handle sync data
+  // Handle sync data with loading state and feedback
   const handleSyncData = async () => {
-    await Promise.all([
-      refetchVulns(),
-      refetchAssets(),
-      refetchPentest(),
-      refetchRisk()
-    ]);
+    setIsLoading(true);
+    toast.info('Syncing security data...');
+    
+    try {
+      await Promise.all([
+        refetchVulns(),
+        refetchAssets(),
+        refetchPentest(),
+        refetchRisk()
+      ]);
+      toast.success('Security data synchronized successfully!');
+    } catch (error) {
+      toast.error('Failed to sync data. Please try again.');
+      console.error('Sync error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleUploadComplete = () => {
+    toast.success('Files processed successfully! Data has been updated.');
     handleSyncData();
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+      toast.success('Signed out successfully');
+    } catch (error) {
+      toast.error('Failed to sign out');
+    }
   };
 
   // Mock data for demonstration (fallback when no real data)
@@ -166,16 +185,17 @@ const Index = () => {
                 variant="outline" 
                 size="sm"
                 onClick={handleSyncData}
+                disabled={isLoading}
                 className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
               >
                 <Database className="h-4 w-4 mr-2" />
-                Sync Data
+                {isLoading ? 'Syncing...' : 'Sync Data'}
               </Button>
               
-              {/* User Menu */}
+              {/* User Menu - Fixed visibility */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="text-white border-slate-600">
+                  <Button variant="outline" size="sm" className="text-slate-200 border-slate-600 bg-slate-800 hover:bg-slate-700">
                     <User className="h-4 w-4 mr-2" />
                     {user?.email?.split('@')[0]}
                   </Button>
@@ -183,14 +203,14 @@ const Index = () => {
                 <DropdownMenuContent className="bg-slate-800 border-slate-700">
                   <DropdownMenuItem 
                     onClick={() => navigate('/organization')}
-                    className="text-white hover:bg-slate-700"
+                    className="text-white hover:bg-slate-700 cursor-pointer"
                   >
                     <Building className="h-4 w-4 mr-2" />
                     Organization
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={handleSignOut}
-                    className="text-white hover:bg-slate-700"
+                    className="text-white hover:bg-slate-700 cursor-pointer"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out

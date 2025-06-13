@@ -1,11 +1,11 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Shield, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { Shield, TrendingUp, TrendingDown, RefreshCw, Loader2 } from 'lucide-react';
 import { useSecurityData } from '@/hooks/useSecurityData';
+import { toast } from 'sonner';
 
 interface RiskScoreCardProps {
   score?: number;
@@ -30,8 +30,15 @@ const RiskScoreCard: React.FC<RiskScoreCardProps> = ({ score: propScore }) => {
   const risk = getRiskLevel(currentScore);
   const isImproving = currentScore > previousScore;
 
-  const handleRecalculate = () => {
-    calculateRisk.mutate();
+  const handleRecalculate = async () => {
+    toast.info('Recalculating risk score...');
+    try {
+      await calculateRisk.mutateAsync();
+      toast.success('Risk score recalculated successfully!');
+    } catch (error) {
+      toast.error('Failed to recalculate risk score');
+      console.error('Recalculation error:', error);
+    }
   };
 
   const lastUpdated = riskScores && riskScores.length > 0 
@@ -92,8 +99,17 @@ const RiskScoreCard: React.FC<RiskScoreCardProps> = ({ score: propScore }) => {
               size="sm"
               className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${calculateRisk.isPending ? 'animate-spin' : ''}`} />
-              {calculateRisk.isPending ? 'Calculating...' : 'Recalculate'}
+              {calculateRisk.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Calculating...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Recalculate
+                </>
+              )}
             </Button>
           </div>
         </div>
