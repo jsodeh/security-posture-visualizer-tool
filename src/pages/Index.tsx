@@ -192,16 +192,17 @@ const Index = () => {
                 {isLoading ? 'Syncing...' : 'Sync Data'}
               </Button>
               
-              {/* User Menu - FIXED with proper contrast and visibility */}
+              {/* User Menu - FIXED with explicit dark styling and black text */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="bg-slate-800 text-white border-slate-600 hover:bg-slate-700 hover:text-white hover:border-slate-500 shadow-lg backdrop-blur-sm font-medium"
+                    className="bg-slate-800 text-black border-slate-600 hover:bg-slate-700 hover:text-black hover:border-slate-500 shadow-lg backdrop-blur-sm font-medium"
+                    style={{ color: '#000000', backgroundColor: '#1e293b' }}
                   >
-                    <User className="h-4 w-4 mr-2 text-white" />
-                    <span className="text-white font-medium">
+                    <User className="h-4 w-4 mr-2" style={{ color: '#000000' }} />
+                    <span style={{ color: '#000000' }} className="font-medium">
                       {user?.email?.split('@')[0] || 'User'}
                     </span>
                   </Button>
