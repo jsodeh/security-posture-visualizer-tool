@@ -124,7 +124,7 @@ const Index = () => {
             <div className="flex items-center space-x-3">
               <Shield className="h-8 w-8 text-blue-400" />
               <div>
-                <h1 className="text-2xl font-bold text-white">ODIN Security Dashboard</h1>
+                <h1 className="text-2xl font-bold text-white">CyberGuard Dashboard</h1>
                 <p className="text-slate-400 text-sm">Risk Management & Security Posture Assessment</p>
               </div>
             </div>
