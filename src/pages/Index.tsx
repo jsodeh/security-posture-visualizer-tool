@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, Database, Search, FileText, BarChart3, Upload, User, LogOut, Building } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, Database, Search, FileText, BarChart3, Upload, User, LogOut } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import RiskScoreCard from '@/components/dashboard/RiskScoreCard';
 import AttackSurfacePanel from '@/components/dashboard/AttackSurfacePanel';
@@ -15,7 +15,6 @@ import VulnerabilityTable from '@/components/dashboard/VulnerabilityTable';
 import FileUploadModal from '@/components/upload/FileUploadModal';
 import { useSecurityData } from '@/hooks/useSecurityData';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const Index = () => {
@@ -24,7 +23,6 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { useVulnerabilities, useAssets, usePentestFindings, useRiskScores } = useSecurityData();
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
   
   // Fetch real data
   const { data: vulnerabilities = [], refetch: refetchVulns } = useVulnerabilities();
@@ -192,7 +190,7 @@ const Index = () => {
                 {isLoading ? 'Syncing...' : 'Sync Data'}
               </Button>
               
-              {/* User Menu - FIXED with white text */}
+              {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -207,13 +205,6 @@ const Index = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-slate-800 border-slate-600 shadow-xl">
-                  <DropdownMenuItem 
-                    onClick={() => navigate('/organization')}
-                    className="text-white hover:bg-slate-700 cursor-pointer focus:bg-slate-700"
-                  >
-                    <Building className="h-4 w-4 mr-2" />
-                    Organization
-                  </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={handleSignOut}
                     className="text-white hover:bg-slate-700 cursor-pointer focus:bg-slate-700"

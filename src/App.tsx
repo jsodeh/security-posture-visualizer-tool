@@ -7,7 +7,6 @@ import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginForm from "@/components/auth/LoginForm";
-import OrganizationProfile from "@/components/organization/OrganizationProfile";
 import MaintenancePage from "@/components/maintenance/MaintenancePage";
 
 const queryClient = new QueryClient();
@@ -39,7 +38,6 @@ const AppContent = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/organization" element={<OrganizationProfile />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
