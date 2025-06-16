@@ -7,19 +7,10 @@ import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginForm from "@/components/auth/LoginForm";
-import MaintenancePage from "@/components/maintenance/MaintenancePage";
 
 const queryClient = new QueryClient();
 
-// Set this to true to enable maintenance mode
-const MAINTENANCE_MODE = true;
-
 const AppContent = () => {
-  // If maintenance mode is enabled, show maintenance page for everyone
-  if (MAINTENANCE_MODE) {
-    return <MaintenancePage />;
-  }
-
   const { user, loading } = useAuth();
 
   if (loading) {
