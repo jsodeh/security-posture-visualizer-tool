@@ -11,6 +11,9 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   organizationId: string | null;
   organizationName: string | null;
+  profile: any | null;
+  profileLoading: boolean;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,6 +30,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [organizationName, setOrganizationName] = useState<string | null>(null);
 
@@ -36,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserOrganization(session.user);
+        fetchUserProfile(session.user);
       }
       setLoading(false);
     });
@@ -47,8 +52,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          await fetchUserOrganization(session.user);
+          await fetchUserProfile(session.user);
         } else {
+          setProfile(null);
           setOrganizationId(null);
           setOrganizationName(null);
         }
@@ -59,27 +65,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserOrganization = async (user: User) => {
+  const fetchUserProfile = async (user: User) => {
+    setProfileLoading(true);
     try {
-      // Get organization name from user metadata if available
-      const orgNameFromMetadata = user.user_metadata?.organization_name;
-      
-      if (orgNameFromMetadata) {
-        setOrganizationName(orgNameFromMetadata);
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+      } else if (profileData) {
+        setProfile(profileData);
+        setOrganizationName(profileData.company_name || 'CyberGuard Demo Corp');
       }
       
       // For demo purposes, use the demo organization
       setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
       
-      // If no organization name from metadata, use demo name
-      if (!orgNameFromMetadata) {
-        setOrganizationName('CyberGuard Demo Corp');
-      }
     } catch (error) {
-      console.error('Error fetching user organization:', error);
+      console.error('Error fetching user profile:', error);
       // Fallback to demo data
       setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
       setOrganizationName('CyberGuard Demo Corp');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchUserProfile(user);
     }
   };
 
@@ -117,6 +134,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     organizationId,
     organizationName,
+    profile,
+    profileLoading,
+    refreshProfile,
   };
 
   return (

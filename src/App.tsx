@@ -7,13 +7,14 @@ import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginForm from "@/components/auth/LoginForm";
+import ProfileSetupForm from "@/components/auth/ProfileSetupForm";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, profile, profileLoading } = useAuth();
 
-  if (loading) {
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
         <div className="text-white">Loading...</div>
@@ -23,6 +24,17 @@ const AppContent = () => {
 
   if (!user) {
     return <LoginForm />;
+  }
+
+  // Check if profile setup is needed
+  if (profile && !profile.profile_completed) {
+    return (
+      <ProfileSetupForm
+        userId={user.id}
+        userEmail={user.email || ''}
+        onComplete={() => window.location.reload()}
+      />
+    );
   }
 
   return (

@@ -44,7 +44,7 @@ const LoginForm = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success('Account created! Please check your email to verify your account.');
+        toast.success('Account created successfully! Please complete your profile setup.');
       }
     } catch (error) {
       toast.error('An unexpected error occurred');
