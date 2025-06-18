@@ -15,29 +15,39 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const { user, loading, profile, profileLoading } = useAuth();
 
+  // Show loading spinner while authentication is being determined
   if (loading || profileLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <div className="text-white text-lg">Loading CyberGuard...</div>
+          <div className="text-slate-400 text-sm mt-2">Initializing security dashboard</div>
+        </div>
       </div>
     );
   }
 
+  // If no user is authenticated, show login form
   if (!user) {
     return <LoginForm />;
   }
 
-  // Check if profile setup is needed
+  // Check if profile setup is needed (only if profile exists and is not completed)
   if (profile && !profile.profile_completed) {
     return (
       <ProfileSetupForm
         userId={user.id}
         userEmail={user.email || ''}
-        onComplete={() => window.location.reload()}
+        onComplete={() => {
+          // Force a page reload to refresh the auth state
+          window.location.reload();
+        }}
       />
     );
   }
 
+  // User is authenticated and profile is complete, show main app
   return (
     <BrowserRouter>
       <Routes>

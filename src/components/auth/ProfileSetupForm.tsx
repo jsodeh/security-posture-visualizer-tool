@@ -52,7 +52,11 @@ const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, 
         // In demo mode, just simulate success and complete the profile
         console.log('Demo mode: Profile setup completed locally');
         toast.success('Profile setup completed successfully!');
-        onComplete();
+        
+        // Add a small delay to simulate processing
+        setTimeout(() => {
+          onComplete();
+        }, 1000);
         return;
       }
 
@@ -72,7 +76,12 @@ const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, 
       }
 
       toast.success('Profile setup completed successfully!');
-      onComplete();
+      
+      // Add a small delay before calling onComplete to ensure state updates
+      setTimeout(() => {
+        onComplete();
+      }, 500);
+      
     } catch (error) {
       console.error('Profile setup error:', error);
       
@@ -81,7 +90,10 @@ const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, 
         // Fallback to demo mode completion
         console.log('Network error detected, completing profile setup in demo mode');
         toast.success('Profile setup completed successfully!');
-        onComplete();
+        
+        setTimeout(() => {
+          onComplete();
+        }, 1000);
       } else {
         toast.error('Failed to complete profile setup. Please try again.');
       }
