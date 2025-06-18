@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -37,35 +37,83 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserProfile(session.user);
-      }
-      setLoading(false);
-    });
+    const initializeAuth = async () => {
+      try {
+        if (!isSupabaseConfigured) {
+          // Demo mode - set up demo user
+          setUser({
+            id: 'demo-user-123',
+            email: 'demo@cyberguard.com',
+          } as User);
+          setProfile({
+            id: 'demo-user-123',
+            email: 'demo@cyberguard.com',
+            first_name: 'Demo',
+            last_name: 'User',
+            company_name: 'CyberGuard Demo Corp',
+            profile_completed: true
+          });
+          setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
+          setOrganizationName('CyberGuard Demo Corp');
+          setLoading(false);
+          return;
+        }
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+        const { data: { session } } = await supabase.auth.getSession();
         setSession(session);
         setUser(session?.user ?? null);
+        
         if (session?.user) {
           await fetchUserProfile(session.user);
-        } else {
-          setProfile(null);
-          setOrganizationId(null);
-          setOrganizationName(null);
         }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        // Fallback to demo mode on error
+        setUser({
+          id: 'demo-user-123',
+          email: 'demo@cyberguard.com',
+        } as User);
+        setProfile({
+          id: 'demo-user-123',
+          email: 'demo@cyberguard.com',
+          first_name: 'Demo',
+          last_name: 'User',
+          company_name: 'CyberGuard Demo Corp',
+          profile_completed: true
+        });
+        setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
+        setOrganizationName('CyberGuard Demo Corp');
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
-    return () => subscription.unsubscribe();
+    initializeAuth();
+
+    // Listen for auth changes only if Supabase is configured
+    if (isSupabaseConfigured) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          setSession(session);
+          setUser(session?.user ?? null);
+          if (session?.user) {
+            await fetchUserProfile(session.user);
+          } else {
+            setProfile(null);
+            setOrganizationId(null);
+            setOrganizationName(null);
+          }
+          setLoading(false);
+        }
+      );
+
+      return () => subscription.unsubscribe();
+    }
   }, []);
 
   const fetchUserProfile = async (user: User) => {
+    if (!isSupabaseConfigured) return;
+    
     setProfileLoading(true);
     try {
       const { data: profileData, error } = await supabase
@@ -75,12 +123,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error && error.code === 'PGRST116') {
-        // No profile found for this user - set default profile for new users
-        setProfile({
+        // No profile found - create a default one for new users
+        const defaultProfile = {
           id: user.id,
           email: user.email,
-          profile_completed: false
-        });
+          profile_completed: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        // Try to insert the profile
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert(defaultProfile);
+        
+        if (!insertError) {
+          setProfile(defaultProfile);
+        } else {
+          // If insert fails, just set the default profile without saving
+          setProfile(defaultProfile);
+        }
         setOrganizationName('CyberGuard Demo Corp');
       } else if (error) {
         console.error('Error fetching profile:', error);
@@ -96,7 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setOrganizationName(profileData.company_name || 'CyberGuard Demo Corp');
       }
       
-      // For demo purposes, use the demo organization
+      // Always set demo organization for now
       setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
       
     } catch (error) {
@@ -121,6 +183,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
+    if (!isSupabaseConfigured) {
+      // Demo mode sign in
+      const demoUser = {
+        id: 'demo-user-123',
+        email: email,
+      } as User;
+      
+      setUser(demoUser);
+      setProfile({
+        id: 'demo-user-123',
+        email: email,
+        first_name: 'Demo',
+        last_name: 'User',
+        company_name: 'CyberGuard Demo Corp',
+        profile_completed: true
+      });
+      setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
+      setOrganizationName('CyberGuard Demo Corp');
+      
+      return { data: { user: demoUser }, error: null };
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -129,6 +213,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, organizationName: string) => {
+    if (!isSupabaseConfigured) {
+      // Demo mode sign up
+      const demoUser = {
+        id: 'demo-user-123',
+        email: email,
+      } as User;
+      
+      setUser(demoUser);
+      setProfile({
+        id: 'demo-user-123',
+        email: email,
+        company_name: organizationName,
+        profile_completed: false
+      });
+      setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
+      setOrganizationName(organizationName);
+      
+      return { data: { user: demoUser }, error: null };
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -142,6 +246,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    if (!isSupabaseConfigured) {
+      // Demo mode sign out
+      setUser(null);
+      setProfile(null);
+      setOrganizationId(null);
+      setOrganizationName(null);
+      return;
+    }
+
     await supabase.auth.signOut();
   };
 
