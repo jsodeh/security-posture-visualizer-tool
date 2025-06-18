@@ -74,8 +74,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error && error.code === 'PGRST116') {
+        // No profile found for this user - set default profile for new users
+        setProfile({
+          id: user.id,
+          email: user.email,
+          profile_completed: false
+        });
+        setOrganizationName('CyberGuard Demo Corp');
+      } else if (error) {
         console.error('Error fetching profile:', error);
+        // Set fallback profile on other errors
+        setProfile({
+          id: user.id,
+          email: user.email,
+          profile_completed: false
+        });
+        setOrganizationName('CyberGuard Demo Corp');
       } else if (profileData) {
         setProfile(profileData);
         setOrganizationName(profileData.company_name || 'CyberGuard Demo Corp');
@@ -86,7 +101,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
     } catch (error) {
       console.error('Error fetching user profile:', error);
-      // Fallback to demo data
+      // Fallback to demo data with default profile
+      setProfile({
+        id: user.id,
+        email: user.email,
+        profile_completed: false
+      });
       setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
       setOrganizationName('CyberGuard Demo Corp');
     } finally {
