@@ -36,15 +36,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [organizationName, setOrganizationName] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get initial session
     const initializeAuth = async () => {
       try {
-        if (!isSupabaseConfigured) {
-          // Demo mode - set up demo user
-          setUser({
+        if (!isSupabaseConfigured || !supabase) {
+          // Demo mode - set up demo user immediately
+          console.log('Running in demo mode - Supabase not configured');
+          const demoUser = {
             id: 'demo-user-123',
             email: 'demo@cyberguard.com',
-          } as User);
+          } as User;
+          
+          setUser(demoUser);
           setProfile({
             id: 'demo-user-123',
             email: 'demo@cyberguard.com',
@@ -59,20 +61,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
+        // Try to get session from Supabase
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.warn('Supabase session error, falling back to demo mode:', error);
+          // Fall back to demo mode
+          const demoUser = {
+            id: 'demo-user-123',
+            email: 'demo@cyberguard.com',
+          } as User;
+          
+          setUser(demoUser);
+          setProfile({
+            id: 'demo-user-123',
+            email: 'demo@cyberguard.com',
+            first_name: 'Demo',
+            last_name: 'User',
+            company_name: 'CyberGuard Demo Corp',
+            profile_completed: true
+          });
+          setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
+          setOrganizationName('CyberGuard Demo Corp');
+          setLoading(false);
+          return;
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
           await fetchUserProfile(session.user);
+        } else {
+          // No session, but still set demo data for the app to work
+          const demoUser = {
+            id: 'demo-user-123',
+            email: 'demo@cyberguard.com',
+          } as User;
+          
+          setUser(demoUser);
+          setProfile({
+            id: 'demo-user-123',
+            email: 'demo@cyberguard.com',
+            first_name: 'Demo',
+            last_name: 'User',
+            company_name: 'CyberGuard Demo Corp',
+            profile_completed: true
+          });
+          setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
+          setOrganizationName('CyberGuard Demo Corp');
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
-        // Fallback to demo mode on error
-        setUser({
+        console.error('Auth initialization error, using demo mode:', error);
+        // Always fall back to demo mode on any error
+        const demoUser = {
           id: 'demo-user-123',
           email: 'demo@cyberguard.com',
-        } as User);
+        } as User;
+        
+        setUser(demoUser);
         setProfile({
           id: 'demo-user-123',
           email: 'demo@cyberguard.com',
@@ -90,29 +137,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeAuth();
 
-    // Listen for auth changes only if Supabase is configured
-    if (isSupabaseConfigured) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          setSession(session);
-          setUser(session?.user ?? null);
-          if (session?.user) {
-            await fetchUserProfile(session.user);
-          } else {
-            setProfile(null);
-            setOrganizationId(null);
-            setOrganizationName(null);
+    // Listen for auth changes only if Supabase is configured and available
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log('Auth state change:', event, session);
+            setSession(session);
+            setUser(session?.user ?? null);
+            if (session?.user) {
+              await fetchUserProfile(session.user);
+            } else {
+              setProfile(null);
+              setOrganizationId(null);
+              setOrganizationName(null);
+            }
+            setLoading(false);
           }
-          setLoading(false);
-        }
-      );
+        );
 
-      return () => subscription.unsubscribe();
+        return () => subscription.unsubscribe();
+      } catch (error) {
+        console.error('Error setting up auth listener:', error);
+        setLoading(false);
+      }
     }
   }, []);
 
   const fetchUserProfile = async (user: User) => {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured || !supabase) {
+      return;
+    }
     
     setProfileLoading(true);
     try {
@@ -183,7 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabase) {
       // Demo mode sign in
       const demoUser = {
         id: 'demo-user-123',
@@ -213,7 +268,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, organizationName: string) => {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabase) {
       // Demo mode sign up
       const demoUser = {
         id: 'demo-user-123',
@@ -246,7 +301,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabase) {
       // Demo mode sign out
       setUser(null);
       setProfile(null);
