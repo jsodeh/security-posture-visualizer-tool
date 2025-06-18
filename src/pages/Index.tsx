@@ -5,8 +5,8 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, Database, Search, FileText, BarChart3, Upload, User, LogOut } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, Database, Search, FileText, BarChart3, Upload, User, LogOut, Settings } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import RiskScoreCard from '@/components/dashboard/RiskScoreCard';
 import AttackSurfacePanel from '@/components/dashboard/AttackSurfacePanel';
 import PentestResults from '@/components/dashboard/PentestResults';
@@ -15,6 +15,7 @@ import VulnerabilityTable from '@/components/dashboard/VulnerabilityTable';
 import FileUploadModal from '@/components/upload/FileUploadModal';
 import { useSecurityData } from '@/hooks/useSecurityData';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const Index = () => {
@@ -22,7 +23,8 @@ const Index = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { useVulnerabilities, useAssets, usePentestFindings, useRiskScores } = useSecurityData();
-  const { user, signOut } = useAuth();
+  const { user, signOut, profile } = useAuth();
+  const navigate = useNavigate();
   
   // Fetch real data
   const { data: vulnerabilities = [], refetch: refetchVulns } = useVulnerabilities();
@@ -99,6 +101,18 @@ const Index = () => {
     } catch (error) {
       toast.error('Failed to sign out');
     }
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
+  // Get display name for user
+  const getDisplayName = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name} ${profile.last_name}`;
+    }
+    return user?.email?.split('@')[0] || 'User';
   };
 
   // Mock data for demonstration (fallback when no real data)
@@ -200,11 +214,19 @@ const Index = () => {
                   >
                     <User className="h-4 w-4 mr-2 text-white" />
                     <span className="font-medium text-white">
-                      {user?.email?.split('@')[0] || 'User'}
+                      {getDisplayName()}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-slate-800 border-slate-600 shadow-xl">
+                  <DropdownMenuItem 
+                    onClick={handleProfileClick}
+                    className="text-white hover:bg-slate-700 cursor-pointer focus:bg-slate-700"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Profile Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-slate-600" />
                   <DropdownMenuItem 
                     onClick={handleSignOut}
                     className="text-white hover:bg-slate-700 cursor-pointer focus:bg-slate-700"
