@@ -171,13 +171,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     setProfileLoading(true);
     try {
+      // Use select() instead of single() to avoid PGRST116 error
       const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
-        .single();
+        .eq('id', user.id);
 
-      if (error && error.code === 'PGRST116') {
+      if (error) {
+        console.error('Error fetching profile:', error);
+        // Set fallback profile on errors
+        setProfile({
+          id: user.id,
+          email: user.email,
+          profile_completed: false
+        });
+        setOrganizationName('CyberGuard Demo Corp');
+      } else if (!profileData || profileData.length === 0) {
         // No profile found - create a default one for new users
         const defaultProfile = {
           id: user.id,
@@ -199,18 +208,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setProfile(defaultProfile);
         }
         setOrganizationName('CyberGuard Demo Corp');
-      } else if (error) {
-        console.error('Error fetching profile:', error);
-        // Set fallback profile on other errors
-        setProfile({
-          id: user.id,
-          email: user.email,
-          profile_completed: false
-        });
-        setOrganizationName('CyberGuard Demo Corp');
-      } else if (profileData) {
-        setProfile(profileData);
-        setOrganizationName(profileData.company_name || 'CyberGuard Demo Corp');
+      } else {
+        // Profile found - use the first (and should be only) result
+        const profile = profileData[0];
+        setProfile(profile);
+        setOrganizationName(profile.company_name || 'CyberGuard Demo Corp');
       }
       
       // Always set demo organization for now
