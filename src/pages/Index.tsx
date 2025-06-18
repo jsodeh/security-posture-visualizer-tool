@@ -5,14 +5,14 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, Database, Search, FileText, BarChart3, Upload, User, LogOut, Settings } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, Database, Search, FileText, BarChart3, Upload, User, LogOut, Settings, Brain } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import RiskScoreCard from '@/components/dashboard/RiskScoreCard';
 import AttackSurfacePanel from '@/components/dashboard/AttackSurfacePanel';
 import PentestResults from '@/components/dashboard/PentestResults';
 import SecurityTrends from '@/components/dashboard/SecurityTrends';
 import VulnerabilityTable from '@/components/dashboard/VulnerabilityTable';
-import FileUploadModal from '@/components/upload/FileUploadModal';
+import EnhancedFileUploadModal from '@/components/upload/EnhancedFileUploadModal';
 import { useSecurityData } from '@/hooks/useSecurityData';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
@@ -191,7 +191,8 @@ const Index = () => {
                 className="text-green-400 border-green-400 hover:bg-green-400 hover:text-white"
               >
                 <Upload className="h-4 w-4 mr-2" />
-                Upload Scans
+                <Brain className="h-3 w-3 mr-1" />
+                AI Upload
               </Button>
               <Button 
                 variant="outline" 
@@ -440,8 +441,8 @@ const Index = () => {
         </Tabs>
       </div>
 
-      {/* File Upload Modal */}
-      <FileUploadModal
+      {/* Enhanced File Upload Modal with AI */}
+      <EnhancedFileUploadModal
         open={uploadModalOpen}
         onOpenChange={setUploadModalOpen}
         onUploadComplete={handleUploadComplete}
