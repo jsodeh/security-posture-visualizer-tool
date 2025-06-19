@@ -37,10 +37,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const initializeAuth = async () => {
+      console.log('Initializing auth...');
+      
       try {
         if (!isSupabaseConfigured || !supabase) {
+          console.log('Supabase not configured, using demo mode');
           // Demo mode - set up demo user immediately
-          console.log('Running in demo mode - Supabase not configured');
           const demoUser = {
             id: 'demo-user-123',
             email: 'demo@cyberguard.com',
@@ -62,6 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         // Try to get session from Supabase
+        console.log('Getting Supabase session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -87,13 +90,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
+        console.log('Session retrieved:', session ? 'Found' : 'None');
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          console.log('User found, fetching profile...');
           await fetchUserProfile(session.user);
         } else {
-          // No session, but still set demo data for the app to work
+          console.log('No session, using demo mode');
+          // No session, use demo data for the app to work
           const demoUser = {
             id: 'demo-user-123',
             email: 'demo@cyberguard.com',
@@ -131,6 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
         setOrganizationName('CyberGuard Demo Corp');
       } finally {
+        console.log('Auth initialization complete');
         setLoading(false);
       }
     };
@@ -142,7 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            console.log('Auth state change:', event, session);
+            console.log('Auth state change:', event, session ? 'Session exists' : 'No session');
             setSession(session);
             setUser(session?.user ?? null);
             if (session?.user) {
@@ -171,7 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     setProfileLoading(true);
     try {
-      // Use select() instead of single() to avoid PGRST116 error
+      console.log('Fetching profile for user:', user.id);
       const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
@@ -187,6 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         setOrganizationName('CyberGuard Demo Corp');
       } else if (!profileData || profileData.length === 0) {
+        console.log('No profile found, creating default');
         // No profile found - create a default one for new users
         const defaultProfile = {
           id: user.id,
@@ -211,6 +219,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         // Profile found - use the first (and should be only) result
         const profile = profileData[0];
+        console.log('Profile loaded:', profile.profile_completed ? 'Complete' : 'Incomplete');
         setProfile(profile);
         setOrganizationName(profile.company_name || 'CyberGuard Demo Corp');
       }
@@ -242,6 +251,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     if (!isSupabaseConfigured || !supabase) {
       // Demo mode sign in
+      console.log('Demo mode sign in');
       const demoUser = {
         id: 'demo-user-123',
         email: email,
@@ -258,6 +268,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
       setOrganizationName('CyberGuard Demo Corp');
+      setLoading(false);
       
       return { data: { user: demoUser }, error: null };
     }
@@ -272,6 +283,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, organizationName: string) => {
     if (!isSupabaseConfigured || !supabase) {
       // Demo mode sign up
+      console.log('Demo mode sign up');
       const demoUser = {
         id: 'demo-user-123',
         email: email,
@@ -286,6 +298,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       setOrganizationId('550e8400-e29b-41d4-a716-446655440000');
       setOrganizationName(organizationName);
+      setLoading(false);
       
       return { data: { user: demoUser }, error: null };
     }
