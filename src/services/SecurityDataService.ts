@@ -1,95 +1,13 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { Tables, Inserts } from '@/lib/supabase';
 
-// Demo data for when Supabase is not configured
-const DEMO_ASSETS = [
-  {
-    id: 'demo-asset-1',
-    organization_id: '550e8400-e29b-41d4-a716-446655440000',
-    name: 'Web Server 01',
-    type: 'Server',
-    ip_address: '192.168.1.10',
-    hostname: 'web01.cyberguard-demo.com',
-    ports: [80, 443, 22],
-    services: ['HTTP', 'HTTPS', 'SSH'],
-    operating_system: 'Ubuntu 20.04',
-    criticality: 5,
-    exposure_score: 75,
-    last_scanned: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-asset-2',
-    organization_id: '550e8400-e29b-41d4-a716-446655440000',
-    name: 'Database Server',
-    type: 'Database',
-    ip_address: '192.168.1.20',
-    hostname: 'db01.cyberguard-demo.com',
-    ports: [3306, 22],
-    services: ['MySQL', 'SSH'],
-    operating_system: 'CentOS 8',
-    criticality: 5,
-    exposure_score: 25,
-    last_scanned: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
-
-const DEMO_VULNERABILITIES = [
-  {
-    id: 'demo-vuln-1',
-    asset_id: 'demo-asset-1',
-    cve_id: 'CVE-2024-1234',
-    title: 'SQL Injection in User Authentication',
-    description: 'The user authentication module is vulnerable to SQL injection attacks.',
-    severity: 'Critical',
-    cvss_score: 9.8,
-    cvss_vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
-    status: 'Open',
-    assignee: 'John Doe',
-    discovered_date: new Date().toISOString(),
-    source: 'Pentest',
-    component: 'Web Application',
-    solution: 'Implement prepared statements',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
-
-const DEMO_RISK_SCORES = [
-  {
-    id: 'demo-risk-1',
-    organization_id: '550e8400-e29b-41d4-a716-446655440000',
-    overall_score: 72,
-    attack_surface_score: 65,
-    vulnerability_score: 68,
-    pentest_score: 82,
-    calculated_date: new Date().toISOString(),
-    created_at: new Date().toISOString()
-  }
-];
-
-const DEMO_PENTEST_FINDINGS = [
-  {
-    id: 'demo-pentest-1',
-    organization_id: '550e8400-e29b-41d4-a716-446655440000',
-    finding_id: 'PT-2024-001',
-    title: 'Privilege Escalation via Misconfigured Service',
-    description: 'Local privilege escalation vulnerability found.',
-    severity: 'High',
-    risk_rating: 'High',
-    affected_assets: ['web01.cyberguard-demo.com'],
-    evidence: 'Service running with excessive privileges.',
-    recommendation: 'Configure service with minimum privileges.',
-    status: 'Open',
-    tester: 'Alex Chen',
-    test_date: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
+// Empty demo data for new users - no pre-populated data
+const EMPTY_DEMO_DATA = {
+  assets: [],
+  vulnerabilities: [],
+  riskScores: [],
+  pentestFindings: []
+};
 
 export class SecurityDataService {
   // Organization methods
@@ -134,7 +52,7 @@ export class SecurityDataService {
   // Asset methods
   static async getAssets(organizationId: string) {
     if (!isSupabaseConfigured) {
-      return DEMO_ASSETS;
+      return EMPTY_DEMO_DATA.assets;
     }
 
     const { data, error } = await supabase
@@ -164,7 +82,7 @@ export class SecurityDataService {
 
   static async updateAssetExposure(assetId: string, exposureScore: number) {
     if (!isSupabaseConfigured) {
-      return DEMO_ASSETS.find(a => a.id === assetId);
+      return EMPTY_DEMO_DATA.assets.find(a => a.id === assetId);
     }
 
     const { data, error } = await supabase
@@ -181,7 +99,7 @@ export class SecurityDataService {
   // Vulnerability methods
   static async getVulnerabilities(organizationId: string) {
     if (!isSupabaseConfigured) {
-      return DEMO_VULNERABILITIES;
+      return EMPTY_DEMO_DATA.vulnerabilities;
     }
 
     const { data, error } = await supabase
@@ -214,7 +132,7 @@ export class SecurityDataService {
 
   static async updateVulnerabilityStatus(vulnId: string, status: string, assignee?: string) {
     if (!isSupabaseConfigured) {
-      return DEMO_VULNERABILITIES.find(v => v.id === vulnId);
+      return EMPTY_DEMO_DATA.vulnerabilities.find(v => v.id === vulnId);
     }
 
     const { data, error } = await supabase
@@ -235,7 +153,7 @@ export class SecurityDataService {
   // Risk score methods
   static async getRiskScores(organizationId: string, limit = 10) {
     if (!isSupabaseConfigured) {
-      return DEMO_RISK_SCORES;
+      return EMPTY_DEMO_DATA.riskScores;
     }
 
     const { data, error } = await supabase
@@ -267,7 +185,7 @@ export class SecurityDataService {
   // Pentest finding methods
   static async getPentestFindings(organizationId: string) {
     if (!isSupabaseConfigured) {
-      return DEMO_PENTEST_FINDINGS;
+      return EMPTY_DEMO_DATA.pentestFindings;
     }
 
     const { data, error } = await supabase
