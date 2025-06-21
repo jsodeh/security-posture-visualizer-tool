@@ -10,7 +10,17 @@ import LoginForm from "@/components/auth/LoginForm";
 import ProfileSetupForm from "@/components/auth/ProfileSetupForm";
 import UserProfile from "@/components/profile/UserProfile";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      staleTime: Infinity,
+    },
+  },
+});
 
 const AppContent = () => {
   const { user, loading, profile, profileLoading } = useAuth();
