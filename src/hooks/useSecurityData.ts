@@ -8,28 +8,44 @@ const DEMO_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
 export const useSecurityData = () => {
   const queryClient = useQueryClient();
 
-  // Assets
+  // Assets - disable automatic refetching
   const useAssets = () => useQuery({
     queryKey: ['assets', DEMO_ORG_ID],
     queryFn: () => SecurityDataService.getAssets(DEMO_ORG_ID),
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity, // Data never becomes stale
   });
 
-  // Vulnerabilities
+  // Vulnerabilities - disable automatic refetching
   const useVulnerabilities = () => useQuery({
     queryKey: ['vulnerabilities', DEMO_ORG_ID],
     queryFn: () => SecurityDataService.getVulnerabilities(DEMO_ORG_ID),
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
   });
 
-  // Risk Scores
+  // Risk Scores - disable automatic refetching
   const useRiskScores = () => useQuery({
     queryKey: ['riskScores', DEMO_ORG_ID],
     queryFn: () => SecurityDataService.getRiskScores(DEMO_ORG_ID),
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
   });
 
-  // Pentest Findings
+  // Pentest Findings - disable automatic refetching
   const usePentestFindings = () => useQuery({
     queryKey: ['pentestFindings', DEMO_ORG_ID],
     queryFn: () => SecurityDataService.getPentestFindings(DEMO_ORG_ID),
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
   });
 
   // Calculate Risk Score

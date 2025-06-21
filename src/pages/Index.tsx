@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, Database, Search, FileText, BarChart3, Upload, User, LogOut, Settings } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Search, FileText, BarChart3, Upload, User, LogOut, Settings } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import RiskScoreCard from '@/components/dashboard/RiskScoreCard';
 import AttackSurfacePanel from '@/components/dashboard/AttackSurfacePanel';
@@ -21,12 +21,12 @@ import { toast } from 'sonner';
 const Index = () => {
   const [timeframe, setTimeframe] = useState('30d');
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { useVulnerabilities, useAssets, usePentestFindings, useRiskScores } = useSecurityData();
   const { user, signOut, profile } = useAuth();
   const navigate = useNavigate();
   
-  // Fetch real data
+  // Fetch real data - only fetch once on mount
   const { data: vulnerabilities = [], refetch: refetchVulns } = useVulnerabilities();
   const { data: assets = [], refetch: refetchAssets } = useAssets();
   const { data: pentestFindings = [], refetch: refetchPentest } = usePentestFindings();
@@ -68,10 +68,10 @@ const Index = () => {
     return calculatePentestGrade(critical, high, medium, low);
   }, [pentestFindings]);
 
-  // Handle sync data with loading state and feedback
-  const handleSyncData = async () => {
-    setIsLoading(true);
-    toast.info('Syncing security data...');
+  // Manual refresh function - only triggered by user action
+  const handleRefreshResults = async () => {
+    setIsRefreshing(true);
+    toast.info('Refreshing security data...');
     
     try {
       await Promise.all([
@@ -80,18 +80,19 @@ const Index = () => {
         refetchPentest(),
         refetchRisk()
       ]);
-      toast.success('Security data synchronized successfully!');
+      toast.success('Security data refreshed successfully!');
     } catch (error) {
-      toast.error('Failed to sync data. Please try again.');
-      console.error('Sync error:', error);
+      toast.error('Failed to refresh data. Please try again.');
+      console.error('Refresh error:', error);
     } finally {
-      setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   const handleUploadComplete = () => {
     toast.success('Files processed successfully! Data has been updated.');
-    handleSyncData();
+    // Only refresh after upload completion
+    handleRefreshResults();
   };
 
   const handleSignOut = async () => {
@@ -184,12 +185,12 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={handleSyncData}
-                disabled={isLoading}
+                onClick={handleRefreshResults}
+                disabled={isRefreshing}
                 className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
               >
-                <Database className="h-4 w-4 mr-2" />
-                {isLoading ? 'Syncing...' : 'Sync Data'}
+                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh Results'}
               </Button>
               
               {/* User Menu */}
