@@ -1,4 +1,3 @@
-
 import { SecurityDataService } from './SecurityDataService';
 
 export interface RiskCalculationResult {
