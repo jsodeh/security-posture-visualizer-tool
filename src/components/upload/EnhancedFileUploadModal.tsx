@@ -55,8 +55,8 @@ const EnhancedFileUploadModal: React.FC<EnhancedFileUploadModalProps> = ({
   const addFiles = (newFiles: File[]) => {
     const supportedTypes = EnhancedDataIngestionService.getSupportedFileTypes();
     const validFiles = newFiles.filter(file => {
-      const extension = '.' + file.name.toLowerCase().split('.').pop();
-      return supportedTypes.includes(extension);
+      const fileType = AIFileProcessingService.getFileType(file.name);
+      return supportedTypes.includes(fileType);
     });
 
     const uploadFiles = validFiles.map(file => ({
