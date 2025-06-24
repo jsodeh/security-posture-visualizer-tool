@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Search, FileText, BarChart3, Upload, User, LogOut, Settings } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Search, FileText, BarChart3, Upload, User, LogOut, Settings, Menu } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import RiskScoreCard from '@/components/dashboard/RiskScoreCard';
 import AttackSurfacePanel from '@/components/dashboard/AttackSurfacePanel';
@@ -18,6 +18,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import EnhancedFileUploadModal from '@/components/upload/EnhancedFileUploadModal';
+import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet';
 
 const Index = () => {
   const [timeframe, setTimeframe] = useState('30d');
@@ -178,7 +179,7 @@ const Index = () => {
                 <p className="text-slate-400 text-sm">Risk Management & Security Posture Assessment</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="hidden sm:flex items-center space-x-4">
               <Badge variant="outline" className="text-blue-400 border-blue-400">
                 Last Updated: {new Date().toLocaleDateString()}
               </Badge>
@@ -201,7 +202,6 @@ const Index = () => {
                 <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {isRefreshing ? 'Refreshing...' : 'Refresh Results'}
               </Button>
-              
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -234,6 +234,39 @@ const Index = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+            </div>
+            {/* Mobile Hamburger Menu */}
+            <div className="block sm:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="border-slate-600">
+                    <Menu className="h-5 w-5 text-white" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right">
+                  <div className="flex flex-col space-y-4 mt-8">
+                    <Badge variant="outline" className="text-blue-400 border-blue-400 w-fit">
+                      Last Updated: {new Date().toLocaleDateString()}
+                    </Badge>
+                    <Button onClick={() => { setUploadModalOpen(true); }} className="w-full bg-green-600 text-white">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Data
+                    </Button>
+                    <Button onClick={handleRefreshResults} className="w-full bg-blue-600 text-white" disabled={isRefreshing}>
+                      <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                      {isRefreshing ? 'Refreshing...' : 'Refresh Results'}
+                    </Button>
+                    <Button onClick={handleProfileClick} className="w-full bg-slate-700 text-white">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Profile Settings
+                    </Button>
+                    <Button onClick={handleSignOut} className="w-full bg-slate-800 text-white">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
