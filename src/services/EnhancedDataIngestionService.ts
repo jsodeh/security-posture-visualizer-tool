@@ -3,29 +3,29 @@ import { AIFileProcessingService, AIProcessedData } from './AIFileProcessingServ
 import { SecurityDataService } from './SecurityDataService';
 
 export class EnhancedDataIngestionService {
-  static async processSecurityFile(file: File): Promise<ProcessedData | AIProcessedData> {
+  static async processSecurityFile(file: File, organizationId: string): Promise<ProcessedData | AIProcessedData> {
     const fileName = file.name.toLowerCase();
     
     // Check if this is a traditional security file format
     if (fileName.endsWith('.xml') || fileName.endsWith('.nessus')) {
-      return await DataIngestionService.processSecurityFile(file);
+      return await DataIngestionService.processSecurityFile(file, organizationId);
     }
     
     // Check if AI processing is required
     if (AIFileProcessingService.isAIProcessingRequired(fileName)) {
-      return await this.processFileWithAI(file);
+      return await this.processFileWithAI(file, organizationId);
     }
     
     throw new Error('Unsupported file format');
   }
 
-  private static async processFileWithAI(file: File): Promise<AIProcessedData> {
+  private static async processFileWithAI(file: File, organizationId: string): Promise<AIProcessedData> {
     try {
       // Process file with AI
       const aiResult = await AIFileProcessingService.processFileWithAI(file);
       
-      // Save the processed data to the database
-      await this.saveAIProcessedData(aiResult);
+      // Save the processed data to the database under the correct organization
+      await this.saveAIProcessedData(aiResult, organizationId);
       
       return aiResult;
     } catch (error) {
@@ -34,9 +34,7 @@ export class EnhancedDataIngestionService {
     }
   }
 
-  private static async saveAIProcessedData(data: AIProcessedData): Promise<void> {
-    const organizationId = '550e8400-e29b-41d4-a716-446655440000'; // Demo org ID
-    
+  private static async saveAIProcessedData(data: AIProcessedData, organizationId: string): Promise<void> {
     try {
       // Save assets
       for (const assetData of data.assets) {

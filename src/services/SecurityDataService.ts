@@ -1,29 +1,13 @@
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { Tables, Inserts } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+import { Database } from '@/lib/database.types';
 
-// Empty demo data for new users - no pre-populated data
-const EMPTY_DEMO_DATA = {
-  assets: [],
-  vulnerabilities: [],
-  riskScores: [],
-  pentestFindings: []
-};
+type PublicSchema = Database['public'];
+type Tables<T extends keyof PublicSchema['Tables']> = PublicSchema['Tables'][T]['Row'];
+type Inserts<T extends keyof PublicSchema['Tables']> = PublicSchema['Tables'][T]['Insert'];
 
 export class SecurityDataService {
   // Organization methods
   static async getOrganization(id: string) {
-    if (!isSupabaseConfigured) {
-      return {
-        id: '550e8400-e29b-41d4-a716-446655440000',
-        name: 'CyberGuard Demo Corp',
-        domain: 'cyberguard-demo.com',
-        industry: 'Technology',
-        size: 'Medium (100-500 employees)',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-    }
-
     const { data, error } = await supabase
       .from('organizations')
       .select('*')
@@ -35,10 +19,6 @@ export class SecurityDataService {
   }
 
   static async createOrganization(org: Inserts<'organizations'>) {
-    if (!isSupabaseConfigured) {
-      return { ...org, id: 'demo-org-1', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-    }
-
     const { data, error } = await supabase
       .from('organizations')
       .insert(org)
@@ -51,10 +31,6 @@ export class SecurityDataService {
 
   // Asset methods
   static async getAssets(organizationId: string) {
-    if (!isSupabaseConfigured) {
-      return EMPTY_DEMO_DATA.assets;
-    }
-
     const { data, error } = await supabase
       .from('assets')
       .select('*')
@@ -66,10 +42,6 @@ export class SecurityDataService {
   }
 
   static async createAsset(asset: Inserts<'assets'>) {
-    if (!isSupabaseConfigured) {
-      return { ...asset, id: `demo-asset-${Date.now()}`, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-    }
-
     const { data, error } = await supabase
       .from('assets')
       .insert(asset)
@@ -81,10 +53,6 @@ export class SecurityDataService {
   }
 
   static async updateAssetExposure(assetId: string, exposureScore: number) {
-    if (!isSupabaseConfigured) {
-      return EMPTY_DEMO_DATA.assets.find(a => a.id === assetId);
-    }
-
     const { data, error } = await supabase
       .from('assets')
       .update({ exposure_score: exposureScore, updated_at: new Date().toISOString() })
@@ -98,10 +66,6 @@ export class SecurityDataService {
 
   // Vulnerability methods
   static async getVulnerabilities(organizationId: string) {
-    if (!isSupabaseConfigured) {
-      return EMPTY_DEMO_DATA.vulnerabilities;
-    }
-
     const { data, error } = await supabase
       .from('vulnerabilities')
       .select(`
@@ -116,10 +80,6 @@ export class SecurityDataService {
   }
 
   static async createVulnerability(vulnerability: Inserts<'vulnerabilities'>) {
-    if (!isSupabaseConfigured) {
-      return { ...vulnerability, id: `demo-vuln-${Date.now()}`, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-    }
-
     const { data, error } = await supabase
       .from('vulnerabilities')
       .insert(vulnerability)
@@ -131,10 +91,6 @@ export class SecurityDataService {
   }
 
   static async updateVulnerabilityStatus(vulnId: string, status: string, assignee?: string) {
-    if (!isSupabaseConfigured) {
-      return EMPTY_DEMO_DATA.vulnerabilities.find(v => v.id === vulnId);
-    }
-
     const { data, error } = await supabase
       .from('vulnerabilities')
       .update({ 
@@ -152,10 +108,6 @@ export class SecurityDataService {
 
   // Risk score methods
   static async getRiskScores(organizationId: string, limit = 10) {
-    if (!isSupabaseConfigured) {
-      return EMPTY_DEMO_DATA.riskScores;
-    }
-
     const { data, error } = await supabase
       .from('risk_scores')
       .select('*')
@@ -168,10 +120,6 @@ export class SecurityDataService {
   }
 
   static async saveRiskScore(riskScore: Inserts<'risk_scores'>) {
-    if (!isSupabaseConfigured) {
-      return { ...riskScore, id: `demo-risk-${Date.now()}`, created_at: new Date().toISOString() };
-    }
-
     const { data, error } = await supabase
       .from('risk_scores')
       .insert(riskScore)
@@ -184,10 +132,6 @@ export class SecurityDataService {
 
   // Pentest finding methods
   static async getPentestFindings(organizationId: string) {
-    if (!isSupabaseConfigured) {
-      return EMPTY_DEMO_DATA.pentestFindings;
-    }
-
     const { data, error } = await supabase
       .from('pentest_findings')
       .select('*')
@@ -199,10 +143,6 @@ export class SecurityDataService {
   }
 
   static async createPentestFinding(finding: Inserts<'pentest_findings'>) {
-    if (!isSupabaseConfigured) {
-      return { ...finding, id: `demo-pentest-${Date.now()}`, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-    }
-
     const { data, error } = await supabase
       .from('pentest_findings')
       .insert(finding)

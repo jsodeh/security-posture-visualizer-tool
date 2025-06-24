@@ -12,21 +12,22 @@ import AttackSurfacePanel from '@/components/dashboard/AttackSurfacePanel';
 import PentestResults from '@/components/dashboard/PentestResults';
 import SecurityTrends from '@/components/dashboard/SecurityTrends';
 import VulnerabilityTable from '@/components/dashboard/VulnerabilityTable';
-import EnhancedFileUploadModal from '@/components/upload/EnhancedFileUploadModal';
+import { EnhancedDataIngestionService } from '@/services/EnhancedDataIngestionService';
 import { useSecurityData } from '@/hooks/useSecurityData';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import EnhancedFileUploadModal from '@/components/upload/EnhancedFileUploadModal';
 
 const Index = () => {
   const [timeframe, setTimeframe] = useState('30d');
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { useVulnerabilities, useAssets, usePentestFindings, useRiskScores } = useSecurityData();
-  const { user, signOut, profile } = useAuth();
+  const { user, signOut, profile, organizationId } = useAuth();
+  const { useVulnerabilities, useAssets, usePentestFindings, useRiskScores } = useSecurityData(organizationId);
   const navigate = useNavigate();
   
-  // Fetch real data - only fetch once on mount
+  // Fetch real data - React Query will only fetch if organizationId is available
   const { data: vulnerabilities = [], refetch: refetchVulns } = useVulnerabilities();
   const { data: assets = [], refetch: refetchAssets } = useAssets();
   const { data: pentestFindings = [], refetch: refetchPentest } = usePentestFindings();
@@ -91,8 +92,16 @@ const Index = () => {
 
   const handleUploadComplete = () => {
     toast.success('Files processed successfully! Data has been updated.');
-    // Only refresh after upload completion
     handleRefreshResults();
+  };
+
+  const handleProcessUpload = async (file: File) => {
+    if (!organizationId) {
+      toast.error("Cannot process file: Organization ID is missing.");
+      return;
+    }
+    // This is a proxy function to pass to the modal
+    await EnhancedDataIngestionService.processSecurityFile(file, organizationId);
   };
 
   const handleSignOut = async () => {
@@ -485,6 +494,7 @@ const Index = () => {
         open={uploadModalOpen}
         onOpenChange={setUploadModalOpen}
         onUploadComplete={handleUploadComplete}
+        onProcessUpload={handleProcessUpload}
       />
     </div>
   );

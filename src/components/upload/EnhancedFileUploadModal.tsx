@@ -13,6 +13,7 @@ interface EnhancedFileUploadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUploadComplete: () => void;
+  onProcessUpload: (file: File) => Promise<void>;
 }
 
 interface UploadFile {
@@ -29,6 +30,7 @@ const EnhancedFileUploadModal: React.FC<EnhancedFileUploadModalProps> = ({
   open,
   onOpenChange,
   onUploadComplete,
+  onProcessUpload,
 }) => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -106,11 +108,11 @@ const EnhancedFileUploadModal: React.FC<EnhancedFileUploadModalProps> = ({
             : f
         ));
 
-        // Process the file
-        const result = await EnhancedDataIngestionService.processSecurityFile(uploadFile.file);
+        // Process the file using the passed-in function
+        const result = await onProcessUpload(uploadFile.file);
         
         // Update to completed with confidence if AI processed
-        const confidence = 'summary' in result && 'confidence' in result.summary 
+        const confidence = result && 'summary' in result && 'confidence' in result.summary 
           ? result.summary.confidence 
           : undefined;
         

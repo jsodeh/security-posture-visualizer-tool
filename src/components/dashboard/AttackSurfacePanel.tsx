@@ -4,23 +4,18 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Globe, Server, Cloud, Smartphone, Wifi, AlertTriangle, Shield, Loader2 } from 'lucide-react';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { useSecurityData } from '@/hooks/useSecurityData';
 
 const AttackSurfacePanel: React.FC = () => {
-  const { useAssets } = useSecurityData();
+  const { organizationId } = useAuth();
+  const { useAssets } = useSecurityData(organizationId);
   const { data: assets = [], isLoading, error } = useAssets();
 
   // Transform assets data into attack surface categories
   const attackSurfaceData = React.useMemo(() => {
-    if (!assets.length) {
-      // Fallback data when no real data is available
-      return [
-        { name: 'Web Applications', exposed: 45, secured: 55, risk: 'high', count: 3 },
-        { name: 'Network Services', exposed: 30, secured: 70, risk: 'medium', count: 5 },
-        { name: 'Cloud Infrastructure', exposed: 25, secured: 75, risk: 'medium', count: 2 },
-        { name: 'Mobile Apps', exposed: 15, secured: 85, risk: 'low', count: 1 },
-        { name: 'IoT Devices', exposed: 60, secured: 40, risk: 'critical', count: 4 },
-      ];
+    if (isLoading || !assets.length) {
+      return [];
     }
 
     // Group assets by type and calculate exposure
@@ -49,7 +44,7 @@ const AttackSurfacePanel: React.FC = () => {
         count: data.count
       };
     });
-  }, [assets]);
+  }, [assets, isLoading]);
 
   const getIcon = (name: string) => {
     switch (name.toLowerCase()) {
@@ -79,10 +74,10 @@ const AttackSurfacePanel: React.FC = () => {
   }));
 
   // Calculate summary statistics
-  const totalAssets = assets.length || 245; // Fallback for demo
-  const highRiskAssets = attackSurfaceData.filter(item => item.risk === 'critical' || item.risk === 'high').reduce((sum, item) => sum + item.count, 0) || 42;
-  const mediumRiskAssets = attackSurfaceData.filter(item => item.risk === 'medium').reduce((sum, item) => sum + item.count, 0) || 89;
-  const lowRiskAssets = attackSurfaceData.filter(item => item.risk === 'low').reduce((sum, item) => sum + item.count, 0) || 114;
+  const totalAssets = assets.length;
+  const highRiskAssets = attackSurfaceData.filter(item => item.risk === 'critical' || item.risk === 'high').reduce((sum, item) => sum + item.count, 0);
+  const mediumRiskAssets = attackSurfaceData.filter(item => item.risk === 'medium').reduce((sum, item) => sum + item.count, 0);
+  const lowRiskAssets = attackSurfaceData.filter(item => item.risk === 'low').reduce((sum, item) => sum + item.count, 0);
 
   if (error) {
     console.error('Error loading assets:', error);
@@ -96,8 +91,6 @@ const AttackSurfacePanel: React.FC = () => {
           <CardTitle className="text-white">Attack Surface Exposure</CardTitle>
           <CardDescription className="text-slate-400">
             Security coverage across different asset categories
-            {isLoading && ' (Loading...)'}
-            {error && ' (Using demo data)'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -106,19 +99,24 @@ const AttackSurfacePanel: React.FC = () => {
               <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
               <span className="ml-2 text-slate-400">Loading attack surface data...</span>
             </div>
+          ) : !assets.length ? (
+            <div className="flex items-center justify-center h-[300px]">
+              <Shield className="h-8 w-8 text-slate-500" />
+              <span className="ml-2 text-slate-500">No asset data available. Upload a scan to get started.</span>
+            </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
                 <YAxis stroke="#9CA3AF" fontSize={12} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1F2937', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1F2937',
                     border: '1px solid #374151',
                     borderRadius: '8px',
                     color: '#fff'
-                  }} 
+                  }}
                 />
                 <Bar dataKey="exposed" fill="#ef4444" name="Exposed" />
                 <Bar dataKey="secured" fill="#22c55e" name="Secured" />
@@ -129,94 +127,98 @@ const AttackSurfacePanel: React.FC = () => {
       </Card>
 
       {/* Detailed Asset Breakdown */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {attackSurfaceData.map((asset, index) => (
-          <Card key={index} className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="text-blue-400">
-                    {getIcon(asset.name)}
+      {attackSurfaceData.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {attackSurfaceData.map((asset, index) => (
+            <Card key={index} className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="text-blue-400">
+                      {getIcon(asset.name)}
+                    </div>
+                    <CardTitle className="text-lg text-white">{asset.name}</CardTitle>
                   </div>
-                  <CardTitle className="text-lg text-white">{asset.name}</CardTitle>
+                  <Badge className={getRiskBadge(asset.risk)}>
+                    {asset.risk.toUpperCase()}
+                  </Badge>
                 </div>
-                <Badge className={getRiskBadge(asset.risk)}>
-                  {asset.risk.toUpperCase()}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-400">Exposure Level</span>
-                  <span className="text-sm font-medium text-white">{asset.exposed}%</span>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-400">Exposure Level</span>
+                    <span className="text-sm font-medium text-white">{asset.exposed}%</span>
+                  </div>
+                  <Progress
+                    value={asset.exposed}
+                    className="bg-slate-700"
+                  />
                 </div>
-                <Progress 
-                  value={asset.exposed} 
-                  className="bg-slate-700"
-                />
-              </div>
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <AlertTriangle className="h-4 w-4 text-red-400" />
-                    <span className="text-red-400 font-medium">Exposed</span>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <AlertTriangle className="h-4 w-4 text-red-400" />
+                      <span className="text-red-400 font-medium">Exposed</span>
+                    </div>
+                    <div className="text-2xl font-bold text-red-400">{asset.exposed}%</div>
                   </div>
-                  <div className="text-2xl font-bold text-red-400">{asset.exposed}%</div>
-                </div>
-                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <Shield className="h-4 w-4 text-green-400" />
-                    <span className="text-green-400 font-medium">Secured</span>
+                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <Shield className="h-4 w-4 text-green-400" />
+                      <span className="text-green-400 font-medium">Secured</span>
+                    </div>
+                    <div className="text-2xl font-bold text-green-400">{asset.secured}%</div>
                   </div>
-                  <div className="text-2xl font-bold text-green-400">{asset.secured}%</div>
                 </div>
-              </div>
 
-              <div className="text-center text-sm text-slate-400">
-                {asset.count} {asset.count === 1 ? 'asset' : 'assets'} in this category
-              </div>
-
-              {asset.risk === 'critical' && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-                  <div className="flex items-center space-x-2 text-red-400 text-sm">
-                    <AlertTriangle className="h-4 w-4" />
-                    <span className="font-medium">Immediate attention required</span>
-                  </div>
+                <div className="text-center text-sm text-slate-400">
+                  {asset.count} {asset.count === 1 ? 'asset' : 'assets'} in this category
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+
+                {asset.risk === 'critical' && (
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                    <div className="flex items-center space-x-2 text-red-400 text-sm">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span className="font-medium">Immediate attention required</span>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Summary Statistics */}
-      <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
-        <CardHeader>
-          <CardTitle className="text-white">Attack Surface Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">{totalAssets}</div>
-              <div className="text-sm text-slate-400">Total Assets</div>
+      {assets.length > 0 && (
+        <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
+          <CardHeader>
+            <CardTitle className="text-white">Attack Surface Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-2">{totalAssets}</div>
+                <div className="text-sm text-slate-400">Total Assets</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-red-400 mb-2">{highRiskAssets}</div>
+                <div className="text-sm text-slate-400">High Risk Assets</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-yellow-400 mb-2">{mediumRiskAssets}</div>
+                <div className="text-sm text-slate-400">Medium Risk Assets</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-400 mb-2">{lowRiskAssets}</div>
+                <div className="text-sm text-slate-400">Low Risk Assets</div>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-red-400 mb-2">{highRiskAssets}</div>
-              <div className="text-sm text-slate-400">High Risk Assets</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400 mb-2">{mediumRiskAssets}</div>
-              <div className="text-sm text-slate-400">Medium Risk Assets</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-400 mb-2">{lowRiskAssets}</div>
-              <div className="text-sm text-slate-400">Low Risk Assets</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

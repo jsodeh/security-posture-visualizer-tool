@@ -13,20 +13,20 @@ export interface ProcessedData {
 }
 
 export class DataIngestionService {
-  static async processSecurityFile(file: File): Promise<ProcessedData> {
+  static async processSecurityFile(file: File, organizationId: string): Promise<ProcessedData> {
     const fileContent = await this.readFileContent(file);
     const fileName = file.name.toLowerCase();
 
     if (fileName.endsWith('.xml')) {
       if (fileContent.includes('<nmaprun')) {
-        return this.processNmapXML(fileContent);
+        return this.processNmapXML(fileContent, organizationId);
       } else if (fileContent.includes('<NessusClientData')) {
-        return this.processNessusXML(fileContent);
+        return this.processNessusXML(fileContent, organizationId);
       } else {
-        return this.processOpenVASXML(fileContent);
+        return this.processOpenVASXML(fileContent, organizationId);
       }
     } else if (fileName.endsWith('.nessus')) {
-      return this.processNessusFile(fileContent);
+      return this.processNessusFile(fileContent, organizationId);
     }
 
     throw new Error('Unsupported file format');
@@ -41,7 +41,7 @@ export class DataIngestionService {
     });
   }
 
-  private static async processNmapXML(content: string): Promise<ProcessedData> {
+  private static async processNmapXML(content: string, organizationId: string): Promise<ProcessedData> {
     // Parse Nmap XML for asset discovery
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, 'text/xml');
@@ -78,7 +78,7 @@ export class DataIngestionService {
         });
 
         assets.push({
-          organization_id: '550e8400-e29b-41d4-a716-446655440000', // Demo org
+          organization_id: organizationId,
           name: hostname,
           type: this.determineAssetType(services),
           ip_address: ipAddress,
@@ -110,7 +110,7 @@ export class DataIngestionService {
     };
   }
 
-  private static async processNessusFile(content: string): Promise<ProcessedData> {
+  private static async processNessusFile(content: string, organizationId: string): Promise<ProcessedData> {
     // Parse Nessus file for vulnerabilities
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, 'text/xml');
@@ -128,8 +128,8 @@ export class DataIngestionService {
         const hostElement = item.closest('ReportHost');
         const hostName = hostElement?.getAttribute('name') || '';
         
-        // Get asset from database
-        const assets = await SecurityDataService.getAssets('550e8400-e29b-41d4-a716-446655440000');
+        // Get asset from database using dynamic org ID
+        const assets = await SecurityDataService.getAssets(organizationId);
         const asset = assets.find(a => a.ip_address === hostName || a.hostname === hostName);
         
         if (asset) {
@@ -175,11 +175,11 @@ export class DataIngestionService {
     };
   }
 
-  private static async processNessusXML(content: string): Promise<ProcessedData> {
-    return this.processNessusFile(content);
+  private static async processNessusXML(content: string, organizationId: string): Promise<ProcessedData> {
+    return this.processNessusFile(content, organizationId);
   }
 
-  private static async processOpenVASXML(content: string): Promise<ProcessedData> {
+  private static async processOpenVASXML(content: string, organizationId: string): Promise<ProcessedData> {
     // Similar to Nessus but for OpenVAS format
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, 'text/xml');

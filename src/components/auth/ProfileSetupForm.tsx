@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Shield, Building, User, Mail, Phone, Globe, Briefcase, Users, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { useAuth } from './AuthProvider';
 
 interface ProfileSetupFormProps {
   userId: string;
@@ -15,6 +16,7 @@ interface ProfileSetupFormProps {
 }
 
 const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, onComplete }) => {
+  const { refreshProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     first_name: '',
@@ -52,11 +54,8 @@ const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, 
         // In demo mode, just simulate success and complete the profile
         console.log('Demo mode: Profile setup completed locally');
         toast.success('Profile setup completed successfully!');
-        
-        // Add a small delay to simulate processing
-        setTimeout(() => {
-          onComplete();
-        }, 1000);
+        await refreshProfile();
+        onComplete();
         return;
       }
 
@@ -77,10 +76,9 @@ const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, 
 
       toast.success('Profile setup completed successfully!');
       
-      // Add a small delay before calling onComplete to ensure state updates
-      setTimeout(() => {
-        onComplete();
-      }, 500);
+      // Refresh the profile data in AuthContext
+      await refreshProfile();
+      onComplete();
       
     } catch (error) {
       console.error('Profile setup error:', error);
@@ -90,10 +88,8 @@ const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, 
         // Fallback to demo mode completion
         console.log('Network error detected, completing profile setup in demo mode');
         toast.success('Profile setup completed successfully!');
-        
-        setTimeout(() => {
-          onComplete();
-        }, 1000);
+        await refreshProfile();
+        onComplete();
       } else {
         toast.error('Failed to complete profile setup. Please try again.');
       }
