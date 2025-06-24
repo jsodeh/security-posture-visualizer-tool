@@ -239,8 +239,8 @@ const Index = () => {
             <div className="block sm:hidden">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="border-slate-600">
-                    <Menu className="h-5 w-5 text-white" />
+                  <Button variant="outline" size="icon" className="border-slate-600 bg-white hover:bg-slate-200">
+                    <Menu className="h-5 w-5 text-slate-900" />
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right">
