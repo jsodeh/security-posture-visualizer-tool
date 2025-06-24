@@ -168,8 +168,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Header */}
-      <div className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-lg">
-        <div className="container mx-auto px-6 py-4">
+      <div className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-lg w-full">
+        <div className="w-full max-w-screen-lg mx-auto px-2 sm:px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Shield className="h-8 w-8 text-blue-400" />
@@ -240,7 +240,7 @@ const Index = () => {
       </div>
 
       {/* Main Dashboard */}
-      <div className="container mx-auto px-6 py-8">
+      <div className="w-full max-w-screen-lg mx-auto px-2 sm:px-4 py-8">
         {!hasData ? (
           // Empty state when no data
           <div className="text-center py-16">
@@ -262,7 +262,7 @@ const Index = () => {
         ) : (
           <>
             {/* Risk Score Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <RiskScoreCard score={currentRiskScore} />
               
               <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-lg">
