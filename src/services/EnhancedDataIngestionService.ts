@@ -1,6 +1,7 @@
 import { DataIngestionService, ProcessedData } from './DataIngestionService';
 import { AIFileProcessingService, AIProcessedData } from './AIFileProcessingService';
 import { SecurityDataService } from './SecurityDataService';
+import { supabase } from '@/lib/supabase';
 
 export class EnhancedDataIngestionService {
   static async processSecurityFile(file: File, organizationId: string): Promise<ProcessedData | AIProcessedData> {
@@ -35,8 +36,19 @@ export class EnhancedDataIngestionService {
   }
 
   private static async saveAIProcessedData(data: AIProcessedData, organizationId: string): Promise<void> {
+    // Log the current user before any DB operation
+    const user = await supabase.auth.getUser();
+    console.log('Supabase user before upload:', user);
     try {
-      // Save assets
+      // 1. Check that organization_id exists
+      const org = await supabase.from('organizations').select('id').eq('id', organizationId).single();
+      if (!org.data) {
+        console.error('Invalid organization_id: does not exist in organizations table', organizationId);
+        throw new Error('Invalid organization_id: does not exist in organizations table');
+      }
+
+      // 2. Save assets
+      let assetInsertSuccess = false;
       for (const assetData of data.assets) {
         const asset = {
           organization_id: organizationId,
@@ -51,41 +63,51 @@ export class EnhancedDataIngestionService {
           exposure_score: assetData.exposure_score || 50,
           last_scanned: new Date().toISOString(),
         };
-        
-        await SecurityDataService.createAsset(asset);
+        try {
+          await SecurityDataService.createAsset(asset);
+          assetInsertSuccess = true;
+        } catch (error) {
+          console.error('Failed to insert asset:', asset, error);
+        }
+      }
+      if (!assetInsertSuccess) {
+        throw new Error('No assets were inserted successfully. Aborting vulnerability and finding insert.');
       }
 
-      // Save vulnerabilities (need to link to assets)
+      // 3. Save vulnerabilities (need to link to assets)
       const assets = await SecurityDataService.getAssets(organizationId);
-      
       for (const vulnData of data.vulnerabilities) {
         // Find matching asset or use the first one
-        const asset = assets.find(a => 
+        const asset = assets.find(a =>
           vulnData.component && a.name.toLowerCase().includes(vulnData.component.toLowerCase())
         ) || assets[0];
-        
-        if (asset) {
-          const vulnerability = {
-            asset_id: asset.id,
-            cve_id: vulnData.cve_id || `AI-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            title: vulnData.title,
-            description: vulnData.description,
-            severity: vulnData.severity,
-            cvss_score: vulnData.cvss_score || this.severityToCVSS(vulnData.severity),
-            cvss_vector: vulnData.cvss_vector || '',
-            status: vulnData.status || 'Open',
-            assignee: null,
-            discovered_date: new Date().toISOString(),
-            source: vulnData.source || 'AI Analysis',
-            component: vulnData.component || 'Unknown',
-            solution: vulnData.solution || 'Review and remediate as needed',
-          };
-          
+        if (!asset) {
+          console.warn('No asset found for vulnerability, skipping:', vulnData);
+          continue; // skip this vulnerability
+        }
+        const vulnerability = {
+          asset_id: asset.id,
+          cve_id: vulnData.cve_id || `AI-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          title: vulnData.title,
+          description: vulnData.description,
+          severity: vulnData.severity,
+          cvss_score: vulnData.cvss_score || this.severityToCVSS(vulnData.severity),
+          cvss_vector: vulnData.cvss_vector || '',
+          status: vulnData.status || 'Open',
+          assignee: null,
+          discovered_date: new Date().toISOString(),
+          source: vulnData.source || 'AI Analysis',
+          component: vulnData.component || 'Unknown',
+          solution: vulnData.solution || 'Review and remediate as needed',
+        };
+        try {
           await SecurityDataService.createVulnerability(vulnerability);
+        } catch (error) {
+          console.error('Failed to insert vulnerability:', vulnerability, error);
         }
       }
 
-      // Save pentest findings
+      // 4. Save pentest findings
       for (const findingData of data.pentestFindings) {
         const finding = {
           organization_id: organizationId,
@@ -101,8 +123,11 @@ export class EnhancedDataIngestionService {
           tester: findingData.tester || 'AI Analysis',
           test_date: new Date().toISOString(),
         };
-        
-        await SecurityDataService.createPentestFinding(finding);
+        try {
+          await SecurityDataService.createPentestFinding(finding);
+        } catch (error) {
+          console.error('Failed to insert pentest finding:', finding, error);
+        }
       }
     } catch (error) {
       console.error('Error saving AI processed data:', error);

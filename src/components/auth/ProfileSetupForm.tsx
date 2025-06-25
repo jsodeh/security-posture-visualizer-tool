@@ -13,16 +13,15 @@ interface ProfileSetupFormProps {
   userId: string;
   userEmail: string;
   onComplete: () => void;
-  companyName?: string;
 }
 
-const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, onComplete, companyName }) => {
-  const { refreshProfile, companyName: contextCompanyName, user, session } = useAuth();
+const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, onComplete }) => {
+  const { refreshProfile, user, session } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
-    company_name: companyName || contextCompanyName || '',
+    company_name: '',
     company_domain: '',
     industry: '',
     company_size: '',

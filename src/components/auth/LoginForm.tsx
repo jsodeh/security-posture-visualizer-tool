@@ -19,7 +19,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ open, onOpenChange, onSignupSucce
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [organizationName, setOrganizationName] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,14 +26,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ open, onOpenChange, onSignupSucce
     
     try {
       if (isSignUp) {
-        if (!organizationName) {
-          toast.error("Organization name is required for sign up.");
-          setLoading(false);
-          return;
-        }
-        await signUp(email, password, organizationName);
-        if (onSignupSuccess) onSignupSuccess(organizationName);
-        toast.success("Check your email for a confirmation link!");
+        await signUp(email, password);
+        toast.success("Account created successfully! Please complete your profile.");
         onOpenChange(false); // Close modal on success
       } else {
         const { error } = await signIn(email, password);
@@ -64,20 +57,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ open, onOpenChange, onSignupSucce
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {isSignUp && (
-            <div>
-              <Label htmlFor="org-name" className="text-white">Organization Name</Label>
-              <Input
-                id="org-name"
-                type="text"
-                value={organizationName}
-                onChange={(e) => setOrganizationName(e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white mt-1"
-                placeholder="Your Company Inc."
-                required={isSignUp}
-              />
-            </div>
-          )}
           <div>
             <Label htmlFor="email" className="text-white">Email</Label>
             <Input

@@ -11,11 +11,9 @@ interface AuthContextType {
   organizationId: string | null;
   organizationName: string | null;
   signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string, organizationName: string) => Promise<any>;
+  signUp: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
-  companyName?: string;
-  setCompanyName?: (name: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,7 +34,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profileLoading, setProfileLoading] = useState(false);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [organizationName, setOrganizationName] = useState<string | null>(null);
-  const [companyName, setCompanyName] = useState<string>('');
 
   const handleUserProfile = useCallback(async (userToProcess: User) => {
     setProfileLoading(true);
@@ -99,8 +96,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp: AuthService.signUp,
     signOut: AuthService.signOut,
     refreshProfile,
-    companyName,
-    setCompanyName,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
