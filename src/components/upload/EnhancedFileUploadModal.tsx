@@ -53,11 +53,7 @@ const EnhancedFileUploadModal: React.FC<EnhancedFileUploadModalProps> = ({
   };
 
   const addFiles = (newFiles: File[]) => {
-    const supportedTypes = EnhancedDataIngestionService.getSupportedFileTypes();
-    const validFiles = newFiles.filter(file => {
-      const fileType = AIFileProcessingService.getFileType(file.name);
-      return supportedTypes.includes(fileType);
-    });
+    const validFiles = newFiles; // Accept all files
 
     const uploadFiles = validFiles.map(file => ({
       file,
@@ -111,14 +107,10 @@ const EnhancedFileUploadModal: React.FC<EnhancedFileUploadModalProps> = ({
         // Process the file using the passed-in function
         const result = await onProcessUpload(uploadFile.file);
         
-        // Update to completed with confidence if AI processed
-        const confidence = result && 'summary' in result && 'confidence' in result.summary 
-          ? result.summary.confidence 
-          : undefined;
-        
+        // Only update status and progress to completed
         setFiles(prev => prev.map(f => 
           f.id === uploadFile.id 
-            ? { ...f, status: 'completed', progress: 100, confidence }
+            ? { ...f, status: 'completed', progress: 100 }
             : f
         ));
 
@@ -204,7 +196,7 @@ const EnhancedFileUploadModal: React.FC<EnhancedFileUploadModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl bg-slate-800 border-slate-700">
+      <DialogContent className="max-w-4xl bg-slate-800 border-slate-700 p-2 sm:p-8 rounded-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-white flex items-center space-x-2">
             <Upload className="h-5 w-5" />

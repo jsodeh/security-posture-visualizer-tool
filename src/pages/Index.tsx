@@ -4,13 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { Shield, ShieldAlert, ShieldCheck, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Search, FileText, BarChart3, Upload, User, LogOut, Settings, Menu } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { Shield, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Search, FileText, Upload, User, LogOut, Settings, Menu } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import RiskScoreCard from '@/components/dashboard/RiskScoreCard';
 import AttackSurfacePanel from '@/components/dashboard/AttackSurfacePanel';
 import PentestResults from '@/components/dashboard/PentestResults';
-import SecurityTrends from '@/components/dashboard/SecurityTrends';
 import VulnerabilityTable from '@/components/dashboard/VulnerabilityTable';
 import { EnhancedDataIngestionService } from '@/services/EnhancedDataIngestionService';
 import { useSecurityData } from '@/hooks/useSecurityData';
@@ -19,14 +18,16 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import EnhancedFileUploadModal from '@/components/upload/EnhancedFileUploadModal';
 import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Index = () => {
   const [timeframe, setTimeframe] = useState('30d');
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { user, signOut, profile, organizationId } = useAuth();
+  const { user, signOut, profile, organizationId, profileLoading } = useAuth();
   const { useVulnerabilities, useAssets, usePentestFindings, useRiskScores } = useSecurityData(organizationId);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   // Fetch real data - React Query will only fetch if organizationId is available
   const { data: vulnerabilities = [], refetch: refetchVulns } = useVulnerabilities();
@@ -50,23 +51,16 @@ const Index = () => {
   // Calculate pentest grade from latest findings
   const latestPentestGrade = React.useMemo(() => {
     if (pentestFindings.length === 0) return null;
-    
-    // Group findings by most recent test
     const recentFindings = pentestFindings.sort((a, b) => 
       new Date(b.test_date).getTime() - new Date(a.test_date).getTime()
     );
-    
     if (recentFindings.length === 0) return null;
-    
-    // Get findings from the most recent test date
     const latestTestDate = recentFindings[0].test_date;
     const latestTestFindings = recentFindings.filter(f => f.test_date === latestTestDate);
-    
     const critical = latestTestFindings.filter(f => f.severity === 'Critical').length;
     const high = latestTestFindings.filter(f => f.severity === 'High').length;
     const medium = latestTestFindings.filter(f => f.severity === 'Medium').length;
     const low = latestTestFindings.filter(f => f.severity === 'Low').length;
-    
     return calculatePentestGrade(critical, high, medium, low);
   }, [pentestFindings]);
 
@@ -74,7 +68,7 @@ const Index = () => {
   const handleRefreshResults = async () => {
     setIsRefreshing(true);
     toast.info('Refreshing security data...');
-    
+    console.log('Refreshing for organizationId:', organizationId);
     try {
       await Promise.all([
         refetchVulns(),
@@ -82,6 +76,11 @@ const Index = () => {
         refetchPentest(),
         refetchRisk()
       ]);
+      // Invalidate all relevant queries
+      await queryClient.invalidateQueries({ queryKey: ['assets', organizationId] });
+      await queryClient.invalidateQueries({ queryKey: ['vulnerabilities', organizationId] });
+      await queryClient.invalidateQueries({ queryKey: ['pentestFindings', organizationId] });
+      await queryClient.invalidateQueries({ queryKey: ['riskScores', organizationId] });
       toast.success('Security data refreshed successfully!');
     } catch (error) {
       toast.error('Failed to refresh data. Please try again.');
@@ -91,9 +90,12 @@ const Index = () => {
     }
   };
 
-  const handleUploadComplete = () => {
+  // Await refresh after upload, show spinner while refreshing
+  const handleUploadComplete = async () => {
     toast.success('Files processed successfully! Data has been updated.');
-    handleRefreshResults();
+    setIsRefreshing(true);
+    await handleRefreshResults();
+    setIsRefreshing(false);
   };
 
   const handleProcessUpload = async (file: File) => {
@@ -101,7 +103,6 @@ const Index = () => {
       toast.error("Cannot process file: Organization ID is missing.");
       return;
     }
-    // This is a proxy function to pass to the modal
     await EnhancedDataIngestionService.processSecurityFile(file, organizationId);
   };
 
@@ -118,7 +119,6 @@ const Index = () => {
     navigate('/profile');
   };
 
-  // Get display name for user
   const getDisplayName = () => {
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name} ${profile.last_name}`;
@@ -126,7 +126,6 @@ const Index = () => {
     return user?.email?.split('@')[0] || 'User';
   };
 
-  // Only show data if it exists, otherwise show empty state
   const riskTrendData = riskScores.length > 0 
     ? riskScores.slice(0, 5).reverse().map(score => ({
         date: new Date(score.calculated_date).toLocaleDateString(),
@@ -137,18 +136,15 @@ const Index = () => {
       }))
     : [];
 
-  // Calculate vulnerability distribution from real data only
   const vulnerabilityDistribution = React.useMemo(() => {
     if (vulnerabilities.length === 0) {
       return [];
     }
-
     const distribution = vulnerabilities.reduce((acc, vuln) => {
       const severity = vuln.severity;
       acc[severity] = (acc[severity] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-
     return [
       { name: 'Critical', value: distribution.Critical || 0, color: '#ef4444' },
       { name: 'High', value: distribution.High || 0, color: '#f97316' },
@@ -165,6 +161,18 @@ const Index = () => {
     { subject: 'Incident Response', A: 70, fullMark: 100 },
     { subject: 'Security Awareness', A: 65, fullMark: 100 },
   ] : [];
+
+  // Add loading state: only render dashboard if organizationId is set and profile is loaded
+  if (profileLoading || !organizationId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mb-4"></div>
+          <div className="text-white text-lg">Loading your organization data...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
@@ -274,7 +282,13 @@ const Index = () => {
 
       {/* Main Dashboard */}
       <div className="w-full max-w-screen-lg mx-auto px-2 sm:px-4 py-8">
-        {!hasData ? (
+        {isRefreshing ? (
+          <div className="flex items-center justify-center min-h-[300px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+            <div className="text-white text-lg ml-4">Loading latest data...</div>
+          </div>
+        ) :
+        (!hasData ? (
           // Empty state when no data
           <div className="text-center py-16">
             <div className="max-w-md mx-auto">
@@ -519,7 +533,7 @@ const Index = () => {
               </TabsContent>
             </Tabs>
           </>
-        )}
+        ))}
       </div>
 
       {/* Enhanced File Upload Modal */}

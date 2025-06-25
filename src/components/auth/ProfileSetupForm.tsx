@@ -13,15 +13,16 @@ interface ProfileSetupFormProps {
   userId: string;
   userEmail: string;
   onComplete: () => void;
+  companyName?: string;
 }
 
-const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, onComplete }) => {
-  const { refreshProfile } = useAuth();
+const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, onComplete, companyName }) => {
+  const { refreshProfile, companyName: contextCompanyName, user, session } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
-    company_name: '',
+    company_name: companyName || contextCompanyName || '',
     company_domain: '',
     industry: '',
     company_size: '',
@@ -39,6 +40,15 @@ const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, 
     setLoading(true);
 
     try {
+      // Debug: log user and session
+      console.log('ProfileSetupForm user:', user);
+      console.log('ProfileSetupForm session:', session);
+      if (!user || !session) {
+        toast.error('You must be logged in to complete your profile. Please log in again.');
+        setLoading(false);
+        return;
+      }
+
       // Validate required fields
       const requiredFields = ['first_name', 'last_name', 'company_name', 'industry', 'company_size'];
       const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
@@ -59,19 +69,40 @@ const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ userId, userEmail, 
         return;
       }
 
-      // Update user profile in Supabase
+      // 1. Create organization
+      const { data: org, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          name: formData.company_name,
+          domain: formData.company_domain,
+          industry: formData.industry,
+          size: formData.company_size,
+        })
+        .select()
+        .single();
+
+      if (orgError) {
+        toast.error('Failed to create organization.');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Update profile with organization_id
       const { error } = await supabase
         .from('profiles')
         .update({
           ...formData,
           email: userEmail,
           profile_completed: true,
+          organization_id: org.id,
           updated_at: new Date().toISOString()
         })
         .eq('id', userId);
 
       if (error) {
-        throw error;
+        toast.error('Failed to update profile with organization.');
+        setLoading(false);
+        return;
       }
 
       toast.success('Profile setup completed successfully!');

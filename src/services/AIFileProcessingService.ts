@@ -69,14 +69,14 @@ export class AIFileProcessingService {
     }
   }
 
-  private static getFileType(fileName: string): string {
+  static getFileType(fileName: string): string {
     const extension = fileName.toLowerCase().split('.').pop() || '';
     const typeMap: { [key: string]: string } = {
       'jpg': 'image', 'jpeg': 'image', 'png': 'image', 'gif': 'image', 'bmp': 'image', 'webp': 'image',
       'pdf': 'pdf', 'doc': 'word', 'docx': 'word', 'xls': 'excel', 'xlsx': 'excel',
       'csv': 'excel', 'ppt': 'powerpoint', 'pptx': 'powerpoint', 'txt': 'text', 'rtf': 'text', 'md': 'text',
     };
-    return typeMap[extension] || 'unknown';
+    return typeMap[extension] || 'text';
   }
 
   private static async extractTextFromFile(file: File, fileType: string): Promise<string> {
@@ -138,7 +138,7 @@ export class AIFileProcessingService {
   private static async processTextFile(file: File): Promise<string> {
     return file.text();
   }
-  
+
   static getSupportedFileTypes(): string[] {
     return ['image', 'pdf', 'word', 'excel', 'powerpoint', 'text'];
   }

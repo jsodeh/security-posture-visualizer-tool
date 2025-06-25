@@ -10,9 +10,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 interface LoginFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSignupSuccess?: (orgName: string) => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ open, onOpenChange }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ open, onOpenChange, onSignupSuccess }) => {
   const { signIn, signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -32,6 +33,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ open, onOpenChange }) => {
           return;
         }
         await signUp(email, password, organizationName);
+        if (onSignupSuccess) onSignupSuccess(organizationName);
         toast.success("Check your email for a confirmation link!");
         onOpenChange(false); // Close modal on success
       } else {
